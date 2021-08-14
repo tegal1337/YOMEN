@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "puppeteer": "^10.1.0",
+    "puppeteer-extra": "^3.1.18",
+    "puppeteer-extra-plugin-stealth": "^2.7.8"
+  },
+  "name": "yt-commenter",
+  "version": "1.0.0",
+  "description": "Auto Comment Youtube Videos",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tegal1337/Youtube-Auto-Commenter.git"
+  },
+  "keywords": [
+    "Yt"
+  ],
+  "author": "Abdul Muttaqin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tegal1337/Youtube-Auto-Commenter/issues"
+  },
+  "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme"
+}
