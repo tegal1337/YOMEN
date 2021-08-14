@@ -1,5 +1,5 @@
 module.exports = {
-  keywords: "awokaokwaokwao",
+  keywords: "keywords",
 //   comments: "Hello Subscribe my channel",
   usernamegoogle: "username",
   passwordgoogle: "pass",
