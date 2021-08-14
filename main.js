@@ -96,7 +96,7 @@ async function startApp() {
           }
           document.querySelector("#simplebox-placeholder").click();
           document.querySelector("div[id='contenteditable-root']").innerHTML =
-            config.comments;
+           "Hello Subscribe my channel";
           console.log(
             document.querySelector("div[id='contenteditable-root']").innerHTML
           );
