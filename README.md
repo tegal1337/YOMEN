@@ -14,6 +14,18 @@ How to run ?
 > node main.js
 ```
 
+dont forget to change the google username and password in ` config.js`
+
+```javascript
+module.exports = {
+  keywords: "keywords",
+//   comments: "Hello Subscribe my channel",
+  usernamegoogle: "username",
+  passwordgoogle: "pass",
+};
+
+```
+
 ## Requirements
 
  - Windows / Linux
