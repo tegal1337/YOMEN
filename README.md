@@ -45,6 +45,3 @@ in line 98
 ````
            
 
-## Donating me 
-
-https://saweria.co/fdciabdul
