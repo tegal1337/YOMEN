@@ -13,7 +13,7 @@ const browserconfig = {
 // save into user data dir
   userDataDir: "fdciabdul",
 };
-async function startApp(page) {
+async function startApp() {
   const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
   await page.setViewport({ width: 1366, height: 768 });
