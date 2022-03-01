@@ -40,7 +40,7 @@ async function startApp(page) {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(10000);
   console.log("=========== Waiting ==============")
-// plz don't remove this lone , atleast you're become to my subsciber who can know newest update from me xD 
+// plz don't remove this line , atleast you're become to my subsciber who can know newest update from me xD 
 // but if you still remove this one , you have to donate to me >:(
   await page.goto("https://www.youtube.com/channel/UC20YDKoLPR9OtsetXX0rnKQ");
  
