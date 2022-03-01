@@ -3,28 +3,40 @@ const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const config = require("./config");
 puppeteer.use(StealthPlugin());
 var keyword = config.keywords;
+var comments = config.comments;
 const browserconfig = {
     //defaultViewport: null,
     // devtools: true,
   headless: false,
   executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   args: ["--mute-audio"],
+// save into user data dir
+  userDataDir: "fdciabdul",
 };
-async function startApp() {
+async function startApp(page) {
   const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
   await page.setViewport({ width: 1366, height: 768 });
   await page.setUserAgent(
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
   );
-
+  
   await page.goto("https://accounts.google.com/");
+  try {
+
+  let checklogin = await page.$('#yDmH0d > c-wiz > div > div:nth-child(2) > div > c-wiz > c-wiz > div > div.s7iwrf.gMPiLc.Kdcijb > div > div > header > h1');
+
+  let txtchecklogin = await page.evaluate(el => el.textContent, checklogin)
+
+  console.log("you are logged in");
+} catch {
+
   await page.waitForSelector("#identifierId");
-  await page.type("#identifierId", config.usernamegoogle, { delay: 100 });
+  await page.type("#identifierId", config.usernamegoogle, { delay: 1000 });
   await page.waitForTimeout(1000);
   await page.keyboard.press("Enter");
   await page.waitForTimeout(5000);
-  await page.type("input", config.passwordgoogle, { delay: 100 });
+  await page.type("input", config.passwordgoogle, { delay: 1000 });
   await page.keyboard.press("Enter");
   await page.waitForTimeout(10000);
   console.log("=========== Waiting ==============")
@@ -41,10 +53,15 @@ async function startApp() {
  } catch (error) {
    console.error(error)
  }
-
+}
   console.log("=========== Start Commenting ==============")
-  await page.waitForTimeout(7000);
-  await page.goto("https://www.youtube.com/results?search_query=" + keyword);
+for(let i=0;i<keyword.length;i++){
+  //await page.goto("https://www.youtube.com/results?search_query=" + keyword+"&sp=CAI%253D");
+  await page.goto("https://www.youtube.com/results?search_query=" + keyword[i]+"&sp=EgQQARgD");
+  await page.evaluate(() => {
+    document.querySelector("#button").click();
+
+  });
   await page.bringToFront();
 
   await page.evaluate(() => {
@@ -72,53 +89,42 @@ async function startApp() {
       await pages.evaluate(() => {
         window.scrollBy(0, 650);
       });
+   
       try {
         await pages.waitForSelector("#message > span", { timeout: 4000 });
-        console.log("Gabisa Comment");
+        console.log("Can't Comment");
         await pages.close();
       } catch {
         await pages.waitForSelector("#simplebox-placeholder", {
-          timeout: 30000,
+          timeout: 4000,
         });
-
+    
         await pages.evaluate(() => {
-          function makeid(length) {
-            var result = [];
-            var characters =
-              "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var charactersLength = characters.length;
-            for (var i = 0; i < length; i++) {
-              result.push(
-                characters.charAt(Math.floor(Math.random() * charactersLength))
-              );
-            }
-            return result.join("");
-          }
           document.querySelector("#simplebox-placeholder").click();
-          document.querySelector("div[id='contenteditable-root']").innerHTML =
-           "Hello Subscribe my channel";
-          console.log(
-            document.querySelector("div[id='contenteditable-root']").innerHTML
-          );
+    
         });
-        pages.keyboard.press("Enter");
+       
+     
+        await pages.waitForTimeout(1000);
+        await pages.keyboard.type(comments[Math.floor(Math.random() * comments.length)],{delay:20});
+        await pages.waitForTimeout(100);
+        await pages.keyboard.press("Enter");
         await pages.evaluate(() => {
           document.querySelector("#submit-button").click();
         });
         await page.waitForTimeout(4000);
         await pages.close();
-        console.log("Sukses Comment");
+        console.log("Success Comment");
       }
-    } catch {
+    } catch(e) {
       await pages.close();
-      console.log("Gabisa Dibuka link ytnya");
+      console.log("Something Wrong maybe this is Short videos , live stream , or broken error : " + e);
     }
   }
+}
+  console.log("DONE! HAVE A NICE DAY");
 
-  console.log("Sudah Comment ke semua Video !");
 
-  await page.close();
-  process.exit();
 }
 
 
