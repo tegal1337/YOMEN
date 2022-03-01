@@ -56,7 +56,7 @@ async function startApp(page) {
 }
   console.log("=========== Start Commenting ==============")
 for(let i=0;i<keyword.length;i++){
-  //await page.goto("https://www.youtube.com/results?search_query=" + keyword+"&sp=CAI%253D");
+  //await page.goto("https://www.youtube.com/results?search_query=" + keyword+"&sp=CAI%253D"); <-- if you want to get get videos by newest update , you can use this one
   await page.goto("https://www.youtube.com/results?search_query=" + keyword[i]+"&sp=EgQQARgD");
   await page.evaluate(() => {
     document.querySelector("#button").click();
