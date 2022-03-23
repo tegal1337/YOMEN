@@ -1,9 +1,9 @@
 # Youtube-Auto-Commenter
 Youtube Bot Auto Commenter Using Puppeter and NodeJS
 
-see this DEMO in here  (https://www.youtube.com/watch?v=P2KkjYFLc3A)
+see this DEMO in here  (https://youtu.be/fyrtHIs0vnI)
 ## Demo
-[![Alt text](https://img.youtube.com/vi/P2KkjYFLc3A/hqdefault.jpg)](https://www.youtube.com/watch?v=P2KkjYFLc3A)
+[![Alt text](https://img.youtube.com/vi/fyrtHIs0vnI/hqdefault.jpg)](https://youtu.be/fyrtHIs0vnI)
 
 How to run ?
 
