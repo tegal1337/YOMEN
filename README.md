@@ -33,15 +33,10 @@ module.exports = {
 
 ## Custom 
 
-` You can custom your comment in main.js file `
+ You can custom your comment in config.js file 
 
-in line 98
 
-```javascript
 
- document.querySelector("div[id='contenteditable-root']").innerHTML =
-           "Hello Subscribe my channel";
-          
-````
+
            
 
