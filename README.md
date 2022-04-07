@@ -1,11 +1,19 @@
-<center>
-# Youtube-Auto-Commenter
+
+<h1 align="center"> Youtube-Auto-Commenter </h1>
+  <p align="center">
+  <image src="https://user-images.githubusercontent.com/31664438/162317530-2fa8831e-9dce-4d00-8321-5340c73f7098.png" align="center"  height="500">
+
 Youtube Bot Auto Commenter Using Puppeter and NodeJS
-</center>
-see this DEMO in here  (https://youtu.be/fyrtHIs0vnI)
+    </p>
+
+
+
 ## Demo
 [![Alt text](https://img.youtube.com/vi/fyrtHIs0vnI/hqdefault.jpg)](https://youtu.be/fyrtHIs0vnI)
 
+see this DEMO in here  (https://youtu.be/fyrtHIs0vnI)
+
+## Run
 How to run ?
 
 ```bash
