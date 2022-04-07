@@ -24,6 +24,14 @@ module.exports = {
 };
 
 ```
+## Feature
+
+ Feature  | Status |
+| ------------- | ------------- |
+| Random Copy Comment | Ok|
+| Comment On Trending | Ok |
+| Comment based on Keyword | Ok |
+| Multi Account |  Ok|
 
 ## Requirements
 
@@ -31,9 +39,44 @@ module.exports = {
  - Google Chrome
  - a Youtube account 
 
-## Custom 
+## Configuration 
 
- You can custom your comment in config.js file 
+> keywords 
+
+fill the keyword , for searching videos of course
+
+> comments
+
+for the comment
+
+> usernamegoogle 
+
+your username google
+
+> password
+
+your google password
+
+> delaycomment (seconds )
+
+> trending
+
+if you choose true , the bot will be automatic comment in trending section 
+
+> multiaccount
+
+fill your account in `multiakun.js`
+
+
+## Donate
+
+<img src="https://www.wikihow.com/images/thumb/1/14/Tell-Others-Their-Gift-Is-a-Donation-Made-in-Their-Name-Step-8-Version-2.jpg/v4-460px-Tell-Others-Their-Gift-Is-a-Donation-Made-in-Their-Name-Step-8-Version-2.jpg">
+
+ - Saweria : https://saweria.co/fdciabdul
+ - Ko-fi : https://ko-fi.com/fdciabdul
+ - Paypal : http://paypal.me/fdciabdul
+
+
 
 
 
