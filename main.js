@@ -358,7 +358,7 @@ async function multiakunBot(config, browserconfig) {
     spinners.add('delay', { text: 'Bentarrr .. kita delay selama '+ config.delay +' menit', color: 'blue' });
   }
   console.log("DONE! HAVE A NICE DAY");
-
+ await browser.close();
   }
 }
 
