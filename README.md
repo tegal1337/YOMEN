@@ -63,18 +63,18 @@ command for installing inside the ubuntu
 copy and paste one by one , don't be lazy dude 🤨
 
 ```bash
->apt instal
->apt update
->apt upgrade 
->apt install chromium-browser
->apt install npm
->npm install -g n
->n install lts
->hash -r 
->apt install curl
->curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
->echo "deb https://dl.yarnpkg.com/debian/ stable main" |  tee /etc/apt/sources.list.d/yarn.list
->apt install yarn 
+> apt instal
+> apt update
+> apt upgrade 
+> apt install chromium-browser
+> apt install npm
+> npm install -g n
+> n install lts
+> hash -r 
+> apt install curl
+> curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+> echo "deb https://dl.yarnpkg.com/debian/ stable main" |  tee /etc/apt/sources.list.d/yarn.list
+> apt install yarn 
 ```
 
 go to directory of this project , then install the dependency
