@@ -48,6 +48,45 @@ module.exports = {
  - Google Chrome
  - a Youtube account 
 
+## Running on android 
+
+yes of course the bot is still works on android
+see my video on here 
+https://youtu.be/X7FwjKFcuSQ
+
+but you need ubuntu installed on your android , use Termux for it!
+and install ubuntu desktop with Andronix 
+i prefer ubuntu 20 , cuz it's more stable than 18 
+
+command for installing inside the ubuntu 
+
+copy and paste one by one , don't be lazy dude 🤨
+
+```bash
+>apt instal
+>apt update
+>apt upgrade 
+>apt install chromium-browser
+>apt install npm
+>npm install -g n
+>n install lts
+>hash -r 
+>apt install curl
+>curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+>echo "deb https://dl.yarnpkg.com/debian/ stable main" |  tee /etc/apt/sources.list.d/yarn.list
+>apt install yarn 
+```
+
+go to directory of this project , then install the dependency
+
+```bash
+yarn
+```
+
+
+also you need to change `executableFilePath` in `main.js` 
+you can set to /usr/bin/chromium
+
 ## Configuration 
 
 > keywords 
