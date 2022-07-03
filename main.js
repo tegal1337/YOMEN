@@ -6,11 +6,11 @@
 
 
 const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth")();
 const config = require("./config");
-const { _autoScroll } = require("./modules/autoscroll");
+const { chromepath} = require("./modules");
 const cliSpinners = require("cli-spinners");
-
+const {_autoScroll} = require("./modules/autoscroll");
 const sleep = require("sleep");
 const Spinners = require('spinnies');
 
@@ -21,14 +21,19 @@ const spinners = new Spinners(cliSpinners.star.frames, {
     process.stdout.write(frame);
   }
 });
-puppeteer.use(StealthPlugin());
+
+["chrome.runtime", "navigator.languages"].forEach(a =>
+  StealthPlugin.enabledEvasions.delete(a)
+);
+
+puppeteer.use(StealthPlugin);
 
 
 const konfigbrowser = {
   //defaultViewport: null,
   // devtools: true,
   headless: false,
-  executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  executablePath: chromepath.chrome,
   args: [
     "--log-level=3", // fatal only
  
@@ -47,9 +52,8 @@ const konfigbrowser = {
     "--no-first-run",
     "--no-zygote"
   ],
-  // unccoment ini jika ingin menggunakan save data
 
- // userDataDir: "iya",
+ userDataDir: config.userdatadir,
 
 };
 
@@ -58,6 +62,9 @@ async function startApp(config, browserconfig) {
 
   const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => {
+    delete navigator.__proto__.webdriver;
+  });
   await page.setViewport({ width: 1366, height: 768 });
   await page.setUserAgent(
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"

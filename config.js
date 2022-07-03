@@ -6,5 +6,6 @@ module.exports = {
   delaycomment: 60, // delay ( per second )
   trending: false,
   copycomment:true, // false if you want use comment above , i mean from array
-  multiakun: false, // true if you want to use multiple account 
+  multiakun: false, // true if you want to use multiple account ,
+  userdatadir : "fdciabdul"
 };
