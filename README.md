@@ -5,15 +5,24 @@
 <h1 align="center"> Youtube-Auto-Commenter </h1>
 Youtube Bot Auto Commenter Using Puppeter and NodeJS
     </p>
+    
+## Quick Links
+
+* [Demo](https://youtu.be/fyrtHIs0vnI)
+* [Installation](#run--installation)
+* [Feature](#feature)
+* [Configuration](#configuration)
 
 
 
 ## Demo
-[![Alt text](https://img.youtube.com/vi/fyrtHIs0vnI/hqdefault.jpg)](https://youtu.be/fyrtHIs0vnI)
+![New_Script_Youtube_Bot_Comment__Auto_Random_Copy_Comment__No](https://user-images.githubusercontent.com/31664438/177520285-2cecfe81-0ae4-477a-a5e6-908a05adef27.gif)
+
+
 
 see this DEMO in here  (https://youtu.be/fyrtHIs0vnI)
 
-## Run
+## Run / Installation
 How to run ?
 
 ```bash
@@ -36,7 +45,7 @@ module.exports = {
 ## Feature
 
  Feature  | Status |
-| ------------- | ------------- |
+| -------------:|------------- |
 | Random Copy Comment | Ok|
 | Comment On Trending | Ok |
 | Comment based on Keyword | Ok |
@@ -89,31 +98,15 @@ you can set to /usr/bin/chromium
 
 ## Configuration 
 
-> keywords 
-
-fill the keyword , for searching videos of course
-
-> comments
-
-for the comment
-
-> usernamegoogle 
-
-your username google
-
-> password
-
-your google password
-
-> delaycomment (seconds )
-
-> trending
-
-if you choose true , the bot will be automatic comment in trending section 
-
-> multiaccount
-
-fill your account in `multiakun.js`
+ Config  | Info |
+| -------------:|------------- |
+| keywordt | fill the keyword , for searching videos of course|
+| comments | list of the comment |
+| usernamegoogle | your username google |
+| password |  your google password|
+| delaycomment |  delay commenting / seconds |
+| trending | Comment based on trending videos on your location|
+| multiaccount |  Multiple account , loop based and not multi threaded |
 
 
 ## Donate
