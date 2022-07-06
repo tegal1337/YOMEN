@@ -1,8 +1,8 @@
 
-<h1 align="center"> Youtube-Auto-Commenter </h1>
-  <p align="center">
-  <image src="https://cdn141.picsart.com/324328493124211.png" align="center"  height="100%">
 
+  <p align="center">
+  <image src="https://hamptonlittleleague.files.wordpress.com/2022/03/youtube-logo.wine_.png" align="center"  width="400"/>
+<h1 align="center"> Youtube-Auto-Commenter </h1>
 Youtube Bot Auto Commenter Using Puppeter and NodeJS
     </p>
 
