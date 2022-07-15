@@ -16,11 +16,12 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
 
 
 ## Demo
-![New_Script_Youtube_Bot_Comment__Auto_Random_Copy_Comment__No](https://user-images.githubusercontent.com/31664438/177520285-2cecfe81-0ae4-477a-a5e6-908a05adef27.gif)
+ <a href="https://youtu.be/fyrtHIs0vnI"> <image src="https://user-images.githubusercontent.com/31664438/177520285-2cecfe81-0ae4-477a-a5e6-908a05adef27.gif" align="center" width="100%" /> </a>
 
+```bash
+$ see this DEMO in here > https://youtu.be/fyrtHIs0vnI
 
-
-see this DEMO in here  (https://youtu.be/fyrtHIs0vnI)
+```
 
 ## Run / Installation
 How to run ?
