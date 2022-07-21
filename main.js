@@ -124,6 +124,10 @@ async function startApp(config, browserconfig) {
       const tweet = await (await link[i].getProperty("href")).jsonValue();
 
       const pages = await browser.newPage();
+      await pages.setViewport({ width: 1366, height: 768 });
+      await pages.setUserAgent(
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+       );
       try {
         await pages.goto(tweet);
         await pages.bringToFront();
