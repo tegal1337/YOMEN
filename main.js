@@ -219,8 +219,4 @@ async function startApp(config, browserconfig) {
 
 
 }
-
-
-
 startApp(config, konfigbrowser);
-
