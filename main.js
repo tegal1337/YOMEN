@@ -32,7 +32,7 @@ const wait = (seconds) =>
 
 puppeteer.use(StealthPlugin);
 
-let paths = "C:\\Users\\Administrator\\Desktop\\OMEN\\ublock"
+let paths = process.cwd()+"/ublock"
 
 const konfigbrowser = {
   defaultViewport: null,
