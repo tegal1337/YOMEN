@@ -7,14 +7,17 @@
 
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth")();
-const config = require("./config");
-const { chromepath , subsribe ,copycommnet , manualComment , autoscroll } = require("./modules");
+const { chromepath } = require("./modules");
 const cliSpinners = require("cli-spinners");
+const {_autoScroll} = require("./modules/autoscroll");
 const Spinners = require('spinnies');
+const akun = require("./accs");
 ["chrome.runtime", "navigator.languages"].forEach(a =>
   StealthPlugin.enabledEvasions.delete(a)
 );
+var queue = require('queue')
 
+var q = queue({ results: [] })
 const spinners = new Spinners(cliSpinners.star.frames, {
   text: 'Loading',
   stream: process.stdout,
@@ -33,40 +36,43 @@ puppeteer.use(StealthPlugin);
 
 let paths = process.cwd()+"/ublock"
 
-const konfigbrowser = {
-  defaultViewport: null,
-  // devtools: true,
-  headless: false,
-  executablePath: chromepath.chrome,
-  args: [
-    "--log-level=3", // fatal only
- 
-    "--no-default-browser-check",
-    "--disable-infobars",
-    "--disable-web-security",
-    "--disable-site-isolation-trials",
-    "--no-experiments",
-    "--ignore-gpu-blacklist",
-    "--ignore-certificate-errors",
-    "--ignore-certificate-errors-spki-list",
-    "--mute-audio",
-    "--disable-extensions",
-    "--no-sandbox",
-  
-    "--no-first-run",
-    "--no-zygote",
-    `--disable-extensions-except=${paths}`,
-    `--load-extension=${paths}`
-  ],
 
- userDataDir: config.userdatadir,
-
-};
-
-async function startApp(config, browserconfig) {
+    startApp(akun.data).then(() => {
+        console.log("done");
+    })
+async function startApp(config) {
   var keyword = config.keywords;
-
-  const browser = await puppeteer.launch(browserconfig);
+  for(var i = 0; i < config.length; i++){
+  const konfigbrowser = {
+    defaultViewport: null,
+    // devtools: true,
+    headless: false,
+    executablePath: chromepath.chrome,
+    args: [
+      "--log-level=3", // fatal only
+   
+      "--no-default-browser-check",
+      "--disable-infobars",
+      "--disable-web-security",
+      "--disable-site-isolation-trials",
+      "--no-experiments",
+      "--ignore-gpu-blacklist",
+      "--ignore-certificate-errors",
+      "--ignore-certificate-errors-spki-list",
+      "--mute-audio",
+      "--disable-extensions",
+      "--no-sandbox",
+    
+      "--no-first-run",
+      "--no-zygote",
+      `--disable-extensions-except=${paths}`,
+      `--load-extension=${paths}`
+    ],
+  
+   userDataDir: config.usernamegoogle,
+  
+  };
+  const browser = await puppeteer.launch(konfigbrowser);
   const page = await browser.newPage();
   await page.setViewport({ width: 1366, height: 768});
   await page.evaluateOnNewDocument(() => {
@@ -100,24 +106,17 @@ async function startApp(config, browserconfig) {
 
   }
   console.log("=========== Start Commenting ==============")
- 
-
- 
- try {
-     await subsribe.subscribeChannel(page);
- } catch (error) {
-   console.error(error)
- }
-
   spinners.add('first-spinner', { text: 'Searching for videos..', color: 'blue' });
   for (let i = 0; i < keyword.length; i++) {
+    //https://www.youtube.com/feed/trending
+    //await page.goto("https://www.youtube.com/results?search_query=" + keyword+"&sp=CAI%253D");
     if (config.trending == true) {
       await page.goto("https://www.youtube.com/feed/trending");
-      await autoscroll._autoScroll(page);
+      await _autoScroll(page);
     } else {
 
     await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
-    await autoscroll._autoScroll(page);
+    await _autoScroll(page);
      }
    
     await page.waitForTimeout(3000);
@@ -165,11 +164,46 @@ async function startApp(config, browserconfig) {
           });
 
           spinners.update('comment', { text: 'So.. we need collecting those comment , so we can copy that ', color: 'blue' });
-        
+          let totalComments = [];
+          await pages.evaluate(() => {
+            window.scrollBy(0, window.innerHeight * 2);
+          });
+          await pages.waitForSelector("yt-formatted-string[id='content-text']", { visible: true });
+          let comments = await pages.$$("yt-formatted-string[id='content-text']");
+
           if(config.copycomment == true){
-          await copycommnet.copyComment(pages,spinners );
+          let count = 1;
+
+          for (let j of comments) {
+            let comment = await pages.evaluate(function (ele) {
+              return ele.textContent;
+            }, j)
+            totalComments.push(comment.split("\n").join(" "));
+            count++;
+          }
+          spinners.update('comment', { text: 'i found so many comment , total :' + totalComments.length, color: 'blue' });
+          await pages.evaluate(() => {
+            window.scrollBy(0, -window.innerHeight * 2);
+          });
+        
+          await pages.waitForTimeout(1000);
+          var komenan = totalComments[Math.floor(Math.random() * totalComments.length)]
+          spinners.update('comment', { text: "but we will use this one \n" + komenan, color: 'blue' });
+          await pages.keyboard.type(komenan, { delay: 20 });
+          await pages.waitForTimeout(100);
+          await pages.keyboard.press("Enter");
+          await pages.evaluate(() => {
+            document.querySelector("#submit-button").click();
+          });
         }else{
-         await manualComment.manualComment(pages,spinners,config);
+          var komenan = config.comments[Math.floor(Math.random() * config.comments.length)]
+          spinners.update('comment', { text: "we will use this one \n" + komenan, color: 'blue' });
+          await pages.keyboard.type(komenan, { delay: 20 });
+          await pages.waitForTimeout(100);
+          await pages.keyboard.press("Enter");
+          await pages.evaluate(() => {
+            document.querySelector("#submit-button").click();
+          });
         }
           await page.waitForTimeout(4000);
           await pages.close();
@@ -190,4 +224,5 @@ async function startApp(config, browserconfig) {
 
 
 }
-startApp(config, konfigbrowser);
+}
+
