@@ -4,20 +4,16 @@
  */
 // ######################################### PESAN
 
-
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth")();
-const { chromepath } = require("./modules");
+const config = require("./accs");
+const { chromepath, subsribe, copycommnet, manualComment, autoscroll } = require("./modules");
 const cliSpinners = require("cli-spinners");
-const {_autoScroll} = require("./modules/autoscroll");
 const Spinners = require('spinnies');
-const akun = require("./accs");
 ["chrome.runtime", "navigator.languages"].forEach(a =>
   StealthPlugin.enabledEvasions.delete(a)
 );
-var queue = require('queue')
 
-var q = queue({ results: [] })
 const spinners = new Spinners(cliSpinners.star.frames, {
   text: 'Loading',
   stream: process.stdout,
@@ -26,31 +22,25 @@ const spinners = new Spinners(cliSpinners.star.frames, {
   }
 });
 
-const wait = (seconds) => 
-    new Promise(resolve => 
-        setTimeout(() => 
-            resolve(true), seconds * 1000))
+const wait = (seconds) =>
+  new Promise(resolve =>
+    setTimeout(() =>
+      resolve(true), seconds * 1000))
 
 
 puppeteer.use(StealthPlugin);
 
-let paths = process.cwd()+"/ublock"
+let paths = process.cwd() + "/ublock";
 
-
-    startApp(akun.data).then(() => {
-        console.log("done");
-    })
-async function startApp(config) {
-  var keyword = config.keywords;
-  for(var i = 0; i < config.length; i++){
-  const konfigbrowser = {
+function browserconfig(paths , config) {
+  return {
     defaultViewport: null,
     // devtools: true,
     headless: false,
-    executablePath: chromepath.chrome,
+   // executablePath: chromepath,
     args: [
       "--log-level=3", // fatal only
-   
+
       "--no-default-browser-check",
       "--disable-infobars",
       "--disable-web-security",
@@ -62,19 +52,26 @@ async function startApp(config) {
       "--mute-audio",
       "--disable-extensions",
       "--no-sandbox",
-    
+
       "--no-first-run",
       "--no-zygote",
       `--disable-extensions-except=${paths}`,
       `--load-extension=${paths}`
     ],
+    userDataDir: config.userdatadir,
+  }
+}
+
+
+
+
+async function startApp(config, browserconfig) {
   
-   userDataDir: config.usernamegoogle,
-  
-  };
-  const browser = await puppeteer.launch(konfigbrowser);
+  var keyword = config.keywords;
+
+  const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
-  await page.setViewport({ width: 1366, height: 768});
+  await page.setViewport({ width: 1366, height: 768 });
   await page.evaluateOnNewDocument(() => {
     delete navigator.__proto__.webdriver;
   });
@@ -106,19 +103,26 @@ async function startApp(config) {
 
   }
   console.log("=========== Start Commenting ==============")
+
+
+
+  try {
+    await subsribe.subscribeChannel(page);
+  } catch (error) {
+    console.error(error)
+  }
+
   spinners.add('first-spinner', { text: 'Searching for videos..', color: 'blue' });
   for (let i = 0; i < keyword.length; i++) {
-    //https://www.youtube.com/feed/trending
-    //await page.goto("https://www.youtube.com/results?search_query=" + keyword+"&sp=CAI%253D");
     if (config.trending == true) {
       await page.goto("https://www.youtube.com/feed/trending");
-      await _autoScroll(page);
+      await autoscroll._autoScroll(page);
     } else {
 
-    await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
-    await _autoScroll(page);
-     }
-   
+      await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
+      await autoscroll._autoScroll(page);
+    }
+
     await page.waitForTimeout(3000);
     spinners.succeed('first-spinner', { text: 'done..', color: 'blue' });
     await page.waitForTimeout(7000);
@@ -137,7 +141,7 @@ async function startApp(config) {
       const tweet = await (await link[i].getProperty("href")).jsonValue();
 
       const pages = await browser.newPage();
-      await pages.setViewport({ width: 1366, height: 768});
+      await pages.setViewport({ width: 1366, height: 768 });
       await pages.setUserAgent(
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
       );
@@ -164,65 +168,31 @@ async function startApp(config) {
           });
 
           spinners.update('comment', { text: 'So.. we need collecting those comment , so we can copy that ', color: 'blue' });
-          let totalComments = [];
-          await pages.evaluate(() => {
-            window.scrollBy(0, window.innerHeight * 2);
-          });
-          await pages.waitForSelector("yt-formatted-string[id='content-text']", { visible: true });
-          let comments = await pages.$$("yt-formatted-string[id='content-text']");
 
-          if(config.copycomment == true){
-          let count = 1;
-
-          for (let j of comments) {
-            let comment = await pages.evaluate(function (ele) {
-              return ele.textContent;
-            }, j)
-            totalComments.push(comment.split("\n").join(" "));
-            count++;
+          if (config.copycomment == true) {
+            await copycommnet.copyComment(pages, spinners);
+          } else {
+            await manualComment.manualComment(pages, spinners, config);
           }
-          spinners.update('comment', { text: 'i found so many comment , total :' + totalComments.length, color: 'blue' });
-          await pages.evaluate(() => {
-            window.scrollBy(0, -window.innerHeight * 2);
-          });
-        
-          await pages.waitForTimeout(1000);
-          var komenan = totalComments[Math.floor(Math.random() * totalComments.length)]
-          spinners.update('comment', { text: "but we will use this one \n" + komenan, color: 'blue' });
-          await pages.keyboard.type(komenan, { delay: 20 });
-          await pages.waitForTimeout(100);
-          await pages.keyboard.press("Enter");
-          await pages.evaluate(() => {
-            document.querySelector("#submit-button").click();
-          });
-        }else{
-          var komenan = config.comments[Math.floor(Math.random() * config.comments.length)]
-          spinners.update('comment', { text: "we will use this one \n" + komenan, color: 'blue' });
-          await pages.keyboard.type(komenan, { delay: 20 });
-          await pages.waitForTimeout(100);
-          await pages.keyboard.press("Enter");
-          await pages.evaluate(() => {
-            document.querySelector("#submit-button").click();
-          });
-        }
           await page.waitForTimeout(4000);
           await pages.close();
           spinners.succeed('comment', { text: 'Success commenting', color: 'blue' });
-        
+
         }
       } catch (e) {
         await pages.close();
         console.log("Something Wrong maybe this is Short videos , live stream , or broken error : " + e);
       }
       await wait(10);
-    
+
     }
-  
-    spinners.add('delay', { text: 'Bentarrr .. kita delay selama '+ config.delay +' menit', color: 'blue' });
+
+    spinners.add('delay', { text: 'Bentarrr .. kita delay selama ' + config.delay + ' menit', color: 'blue' });
   }
   console.log("DONE! HAVE A NICE DAY");
 
 
 }
+for(let i = 0; i < config.data.length; i++){
+  startApp(config.data[i], browserconfig(paths,config.data[i]));
 }
-

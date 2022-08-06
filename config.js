@@ -1,5 +1,5 @@
 module.exports = {
-  keywords: ["fdciabdul", "tegal1337"],
+  keywords: ["user", "pass"],
   comments: ["hello","let's be a friend","subs to subs ahaha"],
   usernamegoogle: "iyangke378",
   passwordgoogle: "mana1414",
