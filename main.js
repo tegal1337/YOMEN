@@ -4,11 +4,10 @@
  */
 // ######################################### PESAN
 
-
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth")();
 const config = require("./config");
-const { chromepath , subsribe ,copycommnet , manualComment , autoscroll } = require("./modules");
+const { chromepath, subsribe, copycommnet, manualComment, autoscroll } = require("./modules");
 const cliSpinners = require("cli-spinners");
 const Spinners = require('spinnies');
 ["chrome.runtime", "navigator.languages"].forEach(a =>
@@ -23,15 +22,15 @@ const spinners = new Spinners(cliSpinners.star.frames, {
   }
 });
 
-const wait = (seconds) => 
-    new Promise(resolve => 
-        setTimeout(() => 
-            resolve(true), seconds * 1000))
+const wait = (seconds) =>
+  new Promise(resolve =>
+    setTimeout(() =>
+      resolve(true), seconds * 1000))
 
 
 puppeteer.use(StealthPlugin);
 
-let paths = process.cwd()+"/ublock"
+let paths = process.cwd() + "/ublock"
 
 const konfigbrowser = {
   defaultViewport: null,
@@ -40,7 +39,7 @@ const konfigbrowser = {
   executablePath: chromepath.chrome,
   args: [
     "--log-level=3", // fatal only
- 
+
     "--no-default-browser-check",
     "--disable-infobars",
     "--disable-web-security",
@@ -52,14 +51,14 @@ const konfigbrowser = {
     "--mute-audio",
     "--disable-extensions",
     "--no-sandbox",
-  
+
     "--no-first-run",
     "--no-zygote",
     `--disable-extensions-except=${paths}`,
     `--load-extension=${paths}`
   ],
 
- userDataDir: config.userdatadir,
+  userDataDir: config.userdatadir,
 
 };
 
@@ -68,7 +67,7 @@ async function startApp(config, browserconfig) {
 
   const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
-  await page.setViewport({ width: 1366, height: 768});
+  await page.setViewport({ width: 1366, height: 768 });
   await page.evaluateOnNewDocument(() => {
     delete navigator.__proto__.webdriver;
   });
@@ -100,14 +99,14 @@ async function startApp(config, browserconfig) {
 
   }
   console.log("=========== Start Commenting ==============")
- 
 
- 
- try {
-     await subsribe.subscribeChannel(page);
- } catch (error) {
-   console.error(error)
- }
+
+
+  try {
+    await subsribe.subscribeChannel(page);
+  } catch (error) {
+    console.error("thanks")
+  }
 
   spinners.add('first-spinner', { text: 'Searching for videos..', color: 'blue' });
   for (let i = 0; i < keyword.length; i++) {
@@ -116,10 +115,10 @@ async function startApp(config, browserconfig) {
       await autoscroll._autoScroll(page);
     } else {
 
-    await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
-    await autoscroll._autoScroll(page);
-     }
-   
+      await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
+      await autoscroll._autoScroll(page);
+    }
+
     await page.waitForTimeout(3000);
     spinners.succeed('first-spinner', { text: 'done..', color: 'blue' });
     await page.waitForTimeout(7000);
@@ -138,7 +137,7 @@ async function startApp(config, browserconfig) {
       const tweet = await (await link[i].getProperty("href")).jsonValue();
 
       const pages = await browser.newPage();
-      await pages.setViewport({ width: 1366, height: 768});
+      await pages.setViewport({ width: 1366, height: 768 });
       await pages.setUserAgent(
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
       );
@@ -165,26 +164,26 @@ async function startApp(config, browserconfig) {
           });
 
           spinners.update('comment', { text: 'So.. we need collecting those comment , so we can copy that ', color: 'blue' });
-        
-          if(config.copycomment == true){
-          await copycommnet.copyComment(pages,spinners );
-        }else{
-         await manualComment.manualComment(pages,spinners,config);
-        }
+
+          if (config.copycomment == true) {
+            await copycommnet.copyComment(pages, spinners);
+          } else {
+            await manualComment.manualComment(pages, spinners, config);
+          }
           await page.waitForTimeout(4000);
           await pages.close();
           spinners.succeed('comment', { text: 'Success commenting', color: 'blue' });
-        
+
         }
       } catch (e) {
         await pages.close();
         console.log("Something Wrong maybe this is Short videos , live stream , or broken error : " + e);
       }
-      await wait(10);
-    
+      await wait(config.delay);
+
     }
-  
-    spinners.add('delay', { text: 'Bentarrr .. kita delay selama '+ config.delay +' menit', color: 'blue' });
+
+    spinners.add('delay', { text: 'wait .. we delaying for ' + config.delay , color: 'blue' });
   }
   console.log("DONE! HAVE A NICE DAY");
 
