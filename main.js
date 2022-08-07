@@ -115,7 +115,7 @@ async function startApp(config, browserconfig) {
       await autoscroll._autoScroll(page);
     } else {
 
-      await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "&sp=EgQQARgD");
+      await page.goto("https://www.youtube.com/results?search_query=" + keyword[i] + "");
       await autoscroll._autoScroll(page);
     }
 
@@ -142,16 +142,24 @@ async function startApp(config, browserconfig) {
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
       );
       try {
+       
+        if(tweet.includes("shorts")){
+          await pages.goto(tweet.replace(/shorts/,"watch"));
+        }else{
+          console.log(tweet)
         await pages.goto(tweet);
+        }
+        
         await pages.bringToFront();
         await page.waitForTimeout(4000);
         await pages.evaluate(() => {
           window.scrollBy(0, 650);
         });
-
+       
         try {
           await pages.waitForSelector("#message > span", { timeout: 4000 });
           console.log("Can't Comment");
+          
           await pages.close();
         } catch {
           await pages.waitForSelector("#simplebox-placeholder", {
@@ -161,8 +169,9 @@ async function startApp(config, browserconfig) {
           await pages.evaluate(() => {
             document.querySelector("#simplebox-placeholder").click();
 
+          
           });
-
+          
           spinners.update('comment', { text: 'So.. we need collecting those comment , so we can copy that ', color: 'blue' });
 
           if (config.copycomment == true) {

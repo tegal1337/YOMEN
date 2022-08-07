@@ -1,3 +1,4 @@
+const location = require("./getLocation")
 module.exports = {
     copyComment: async (pages , spinners) => {
           let count = 1;
@@ -23,7 +24,7 @@ module.exports = {
           await pages.waitForTimeout(1000);
           var komenan = totalComments[Math.floor(Math.random() * totalComments.length)]
           spinners.update('comment', { text: "but we will use this one \n" + komenan, color: 'blue' });
-          await pages.keyboard.type(komenan, { delay: 20 });
+          await pages.keyboard.type(komenan + "\n\n" + await location.getLocation(), { delay: 20 });
           await pages.waitForTimeout(100);
           await pages.keyboard.press("Enter");
           await pages.evaluate(() => {
