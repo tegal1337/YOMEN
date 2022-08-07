@@ -5,6 +5,6 @@ module.exports = {
   passwordgoogle: "pass",
   delaycomment: 60, // delay ( per second )
   trending: false,
-  copycomment:true, // false if you want use comment above , i mean from array
+  copycomment:false, // false if you want use comment above , i mean from array
   userdatadir : "fdciabdul"
 };

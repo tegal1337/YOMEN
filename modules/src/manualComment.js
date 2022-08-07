@@ -1,5 +1,5 @@
 module.exports = {
-    subscribeChannel: async (pages , spinners , config) => {
+    manualComment: async (pages , spinners , config) => {
         var komenan = config.comments[Math.floor(Math.random() * config.comments.length)]
         spinners.update('comment', { text: "we will use this one \n" + komenan, color: 'blue' });
         await pages.keyboard.type(komenan, { delay: 20 });
