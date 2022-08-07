@@ -5,5 +5,5 @@ module.exports = {
     copycommnet : require("./src/copyComment"),
     autoscroll : require("./src/autoScroll"),
     manualComment : require("./src/manualComment"),
-    closPage : require("./src/closePage"),
+    closePage : require("./src/closePage"),
 }
