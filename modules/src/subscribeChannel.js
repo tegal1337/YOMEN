@@ -7,6 +7,6 @@ module.exports = {
         await page.evaluate(() => {
             document.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button > yt-formatted-string").click();
         })
-        console.log(value + "Thank you for subscribe my channel")
+     
     }
 }
