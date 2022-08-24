@@ -101,7 +101,7 @@ you can set to /usr/bin/chromium
 
  Config  | Info |
 | -------------:|------------- |
-| keywordt | fill the keyword , for searching videos of course|
+| keyword | fill the keyword , for searching videos of course|
 | comments | list of the comment |
 | usernamegoogle | your username google |
 | password |  your google password|
