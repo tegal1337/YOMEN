@@ -7,7 +7,7 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth")();
 const config = require("./config");
-const { chromepath, subsribe, copycommnet, manualComment, autoscroll } = require("./modules");
+const { chromepath, subsribe, copycommnet, manualComment, autoscroll ,likeVideos} = require("./modules");
 const cliSpinners = require("cli-spinners");
 const Spinners = require('spinnies');
 ["chrome.runtime", "navigator.languages"].forEach(a =>
@@ -149,7 +149,7 @@ async function startApp(config, browserconfig) {
           console.log(tweet)
         await pages.goto(tweet);
         }
-        
+        await likeVideos.likeVideos(pages);
         await pages.bringToFront();
         await page.waitForTimeout(4000);
         await pages.evaluate(() => {

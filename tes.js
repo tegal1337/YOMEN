@@ -1,5 +1,5 @@
-var lokasi = require("./modules/src/getLocation");
+var lokasi = require("./modules/src/quoteIndo");
 
 (async () => {
-console.log(await lokasi.getLocation());
+console.log(await lokasi.getQuotes("acak"));
 })();

@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.12",
     "cli-spinners": "^2.6.1",
     "command-exist": "^1.0.0",
     "command-exists": "^1.2.9",
