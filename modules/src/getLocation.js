@@ -5,7 +5,7 @@ async function getLocation() {
     const lokasi = await axios.get('https://ipinfo.io/ip')
     var geo = geoip.lookup(lokasi.data);
     var date = format('yyyy/MM/dd hh:mm:ss', new Date());
-    return geo.city + ', ' + geo.country + ' - ' + date;
+    return geo.city + ', ' + geo.country;
 
 }
 
