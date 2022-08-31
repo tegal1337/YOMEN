@@ -212,7 +212,7 @@ async function startApp(config, browserconfig) {
     }
 
     spinners.add("delay", {
-      text: "wait .. we delaying for " + config.delay,
+      text: "wait .. we delaying for " + config.delaycomment,
       color: "blue",
     });
   }
