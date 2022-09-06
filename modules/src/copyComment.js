@@ -34,7 +34,7 @@ module.exports = {
       color: "blue",
     });
   
-    await pages.type("#contenteditable-root", komenan + config.useLocation ? "\n\n"+location.getLocation() : "" , { delay: 20 });
+    await pages.type("#contenteditable-root", komenan , { delay: 20 });
     await pages.waitForTimeout(100);
     await pages.keyboard.press("Enter");
     await pages.evaluate(() => {
