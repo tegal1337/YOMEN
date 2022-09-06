@@ -82,13 +82,12 @@ async function startApp(config, browserconfig) {
 
   await page.goto("https://accounts.google.com/signin/v2/identifier?service=youtube");
   spinners.add('user', { text: 'Login..', color: 'green' });
+
   await page.waitForTimeout(2000);
+
   try {
-
     let checklogin = await page.$('#yDmH0d > c-wiz > div > div:nth-child(2) > div > c-wiz > c-wiz > div > div.s7iwrf.gMPiLc.Kdcijb > div > div > header > h1');
-
     await page.evaluate(el => el.textContent, checklogin)
-
     spinners.succeed('user', { text: 'You already logged in..', color: 'blue' });
   } catch {
 
@@ -103,8 +102,6 @@ async function startApp(config, browserconfig) {
 
   }
   console.log("=========== Start Commenting ==============")
-
-
 
   try {
     await subsribe.subscribeChannel(page);
@@ -187,7 +184,7 @@ async function startApp(config, browserconfig) {
 
     }
 
-    spinners.add('delay', { text: 'Bentarrr .. kita delay selama ' + config.delay + ' menit', color: 'blue' });
+    spinners.add('delay', { text: 'Wait .. we were delaying for ' + config.delay + ' menit', color: 'blue' });
   }
   console.log("DONE! HAVE A NICE DAY");
 
@@ -195,4 +192,5 @@ async function startApp(config, browserconfig) {
 }
 for(let i = 0; i < config.data.length; i++){
   startApp(config.data[i], browserconfig(paths,config.data[i]));
+  wait(10000)
 }
