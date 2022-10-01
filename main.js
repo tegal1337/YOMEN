@@ -43,7 +43,6 @@ const konfigbrowser = {
   executablePath: chromepath.chrome,
   args: [
     "--log-level=3", // fatal only
-
     "--no-default-browser-check",
     "--disable-infobars",
     "--disable-web-security",
@@ -154,6 +153,11 @@ async function startApp(config, browserconfig) {
       await pages.setUserAgent(
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
       );
+      
+            await pages.authenticate({
+                   username: "mix101QRMSO3B",
+                    password: "aJgTn44p",
+            });
       try {
         if (tweet.includes("shorts")) {
           await pages.goto(tweet.replace(/shorts/, "watch"));

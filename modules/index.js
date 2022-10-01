@@ -7,4 +7,5 @@ module.exports = {
     manualComment : require("./src/manualComment"),
     closePage : require("./src/closePage"),
     likeVideos : require("./src/likeVideos"),
+    quoteComment : require("./src/quoteIndo"),
 }

@@ -37,7 +37,7 @@ function browserconfig(paths , config) {
     defaultViewport: null,
     // devtools: true,
     headless: false,
-   // executablePath: chromepath,
+  executablePath: chromepath,
     args: [
       "--log-level=3", // fatal only
 
