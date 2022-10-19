@@ -162,7 +162,7 @@ async function startApp(config, browserconfig) {
         if (tweet.includes("shorts")) {
           await pages.goto(tweet.replace(/shorts/, "watch"));
         } else {
-          console.log(tweet);
+         // console.log(tweet);
           await pages.goto(tweet);
         }
         try {
