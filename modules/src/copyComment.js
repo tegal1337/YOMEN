@@ -39,6 +39,6 @@ module.exports = {
     await pages.keyboard.press("Enter");
     await pages.evaluate(() => {
       document.querySelector("#submit-button").click();
-    });y
+    });
   },
 };
