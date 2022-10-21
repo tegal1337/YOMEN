@@ -180,12 +180,10 @@ async function startApp(config, browserconfig) {
 
           await pages.close();
         } catch {
-          await pages.waitForSelector("#simplebox-placeholder", {
-            timeout: 4000,
-          });
+          await pages.waitForSelector("#contenteditable-root");
 
           await pages.evaluate(() => {
-            document.querySelector("#simplebox-placeholder").click();
+            document.querySelector("#contenteditable-root").click();
           });
 
           spinners.update("comment", {
@@ -207,10 +205,10 @@ async function startApp(config, browserconfig) {
         }
       } catch (e) {
         await pages.close();
-        console.log(
-          "Something Wrong maybe this is Short videos , live stream , or broken error : " +
-            e
-        );
+        // console.log(
+        //   "Something Wrong maybe this is Short videos , live stream , or broken error : " +
+        //     e
+        // );
       }
       await wait(config.delay);
     }
