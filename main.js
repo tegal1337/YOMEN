@@ -75,7 +75,7 @@ async function startApp(config, browserconfig) {
   });
 
   await page.setUserAgent(
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
   );
 
   await page.goto(
@@ -151,13 +151,10 @@ async function startApp(config, browserconfig) {
       const pages = await browser.newPage();
       await pages.setViewport({ width: 1366, height: 768 });
       await pages.setUserAgent(
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
       );
       
-            await pages.authenticate({
-                   username: "mix101QRMSO3B",
-                    password: "aJgTn44p",
-            });
+         
       try {
         if (tweet.includes("shorts")) {
           await pages.goto(tweet.replace(/shorts/, "watch"));
@@ -169,9 +166,9 @@ async function startApp(config, browserconfig) {
           await likeVideos.likeVideos(pages);
         } catch (error) {}
         await pages.bringToFront();
-        await page.waitForTimeout(4000);
+        await pages.waitForTimeout(4000);
         await pages.evaluate(() => {
-          window.scrollBy(0, 650);
+          window.scrollBy(0, 550);
         });
 
         try {
@@ -180,12 +177,13 @@ async function startApp(config, browserconfig) {
 
           await pages.close();
         } catch {
-          await pages.waitForSelector("#contenteditable-root");
-
-          await pages.evaluate(() => {
-            document.querySelector("#contenteditable-root").click();
+          await pages.waitForSelector("#simplebox-placeholder", {
+            timeout: 4000,
           });
-
+        
+          await pages.evaluate(() => {
+            document.querySelector("#simplebox-placeholder").click();
+          });
           spinners.update("comment", {
             text: "So.. we need collecting those comment , so we can copy that ",
             color: "blue",
@@ -205,10 +203,10 @@ async function startApp(config, browserconfig) {
         }
       } catch (e) {
         await pages.close();
-        // console.log(
-        //   "Something Wrong maybe this is Short videos , live stream , or broken error : " +
-        //     e
-        // );
+        console.log(
+          "Something Wrong maybe this is Short videos , live stream , or broken error : " +
+            e
+        );
       }
       await wait(config.delay);
     }
