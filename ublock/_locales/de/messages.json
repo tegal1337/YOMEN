@@ -68,15 +68,15 @@
     "description": "Title for the advanced settings page"
   },
   "popupPowerSwitchInfo": {
-    "message": "Klick: uBlock₀ für diese Website aktivieren/deaktivieren.\n\nStrg+Klick: uBlock₀ nur für die aktuelle Seite deaktivieren.",
+    "message": "Klick: uBlock₀ für diese Website ein-/ausschalten.\n\nStrg+Klick: uBlock₀ nur für die aktuelle Seite ausschalten.",
     "description": "English: Click: disable/enable uBlock₀ for this site.\n\nCtrl+click: disable uBlock₀ only on this page."
   },
   "popupPowerSwitchInfo1": {
-    "message": "Hier klicken, um uBlock₀ für diese Website zu deaktivieren. \n\nStrg+Klick, um uBlock₀ nur auf dieser Seite zu deaktivieren.",
+    "message": "Hier klicken, um uBlock₀ für diese Website auszuschalten. \n\nStrg+Klick, um uBlock₀ nur auf dieser Seite auszuschalten.",
     "description": "Message to be read by screen readers"
   },
   "popupPowerSwitchInfo2": {
-    "message": "Hier klicken, um uBlock₀ für diese Website zu aktivieren.",
+    "message": "Hier klicken, um uBlock₀ für diese Website einzuschalten.",
     "description": "Message to be read by screen readers"
   },
   "popupBlockedRequestPrompt": {
@@ -312,7 +312,7 @@
     "description": "English: Click, Ctrl-click"
   },
   "pickerContextMenuEntry": {
-    "message": "Element blockieren…",
+    "message": "Element blockieren …",
     "description": "An entry in the browser's contextual menu"
   },
   "settingsCollapseBlockedPrompt": {
@@ -396,7 +396,7 @@
     "description": "background information: https://github.com/gorhill/uBlock/issues/3150"
   },
   "settingsUncloakCnamePrompt": {
-    "message": "Anerkannten Namen enthüllen",
+    "message": "Kanonische Namen auflösen",
     "description": "background information: https://github.com/uBlockOrigin/uBlock-issues/issues/1513"
   },
   "settingsAdvanced": {
@@ -424,7 +424,7 @@
     "description": "Appears at the top of the _3rd-party filters_ pane"
   },
   "3pListsOfBlockedHostsPerListStats": {
-    "message": "{{used}} benutzt aus {{total}}",
+    "message": "{{used}}/{{total}} verwendet",
     "description": "Appears aside each filter list in the _3rd-party filters_ pane"
   },
   "3pAutoUpdatePrompt1": {
@@ -500,7 +500,7 @@
     "description": "English: Custom"
   },
   "3pImport": {
-    "message": "Importieren…",
+    "message": "Importieren …",
     "description": "The label for the checkbox used to import external filter lists"
   },
   "3pExternalListsHint": {
@@ -520,7 +520,7 @@
     "description": "used as a tooltip for the clock icon beside a list"
   },
   "3pUpdating": {
-    "message": "Wird aktualisiert…",
+    "message": "Wird aktualisiert …",
     "description": "used as a tooltip for the spinner icon beside a list"
   },
   "3pNetworkError": {
@@ -532,11 +532,11 @@
     "description": "Short information about how to create custom filters"
   },
   "1pImport": {
-    "message": "Importieren und anfügen…",
+    "message": "Importieren und anfügen …",
     "description": "English: Import and append"
   },
   "1pExport": {
-    "message": "Exportieren…",
+    "message": "Exportieren …",
     "description": "English: Export"
   },
   "1pExportFilename": {
@@ -576,11 +576,11 @@
     "description": "Will discard manually-edited content and exit manual-edit mode"
   },
   "rulesImport": {
-    "message": "Aus Datei importieren…",
+    "message": "Aus Datei importieren …",
     "description": ""
   },
   "rulesExport": {
-    "message": "In Datei exportieren…",
+    "message": "In Datei exportieren …",
     "description": ""
   },
   "rulesDefaultFileName": {
@@ -616,11 +616,11 @@
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
-    "message": "Importieren und anfügen…",
+    "message": "Importieren und anfügen …",
     "description": "English: Import and append"
   },
   "whitelistExport": {
-    "message": "Exportieren…",
+    "message": "Exportieren …",
     "description": "English: Export"
   },
   "whitelistExportFilename": {
@@ -748,7 +748,7 @@
     "description": "Label to identify a context field (typically a hostname)"
   },
   "loggerEntryDetailsRootContext": {
-    "message": "Grundkontext",
+    "message": "Wurzelkontext",
     "description": "Label to identify a root context field (typically a hostname)"
   },
   "loggerEntryDetailsPartyness": {
@@ -780,7 +780,7 @@
     "description": "Small header to identify the static filtering section"
   },
   "loggerStaticFilteringSentence": {
-    "message": "{{action}} Netzwerkanfragen {{type}},{{br}}deren URL-Adresse mit {{url}} übereinstimmt{{br}}und von {{origin}} stammen,{{br}}{{importance}} ein übereinstimmender Ausnahme-Filter existiert.",
+    "message": "{{action}} Netzwerkanfragen {{type}},{{br}}deren URL-Adresse mit {{url}} übereinstimmt{{br}}und von {{origin}} stammen,{{br}}{{importance}} ein übereinstimmender Ausnahmefilter existiert.",
     "description": "Used in the static filtering wizard"
   },
   "loggerStaticFilteringSentencePartBlock": {
@@ -872,7 +872,7 @@
     "description": "Label for radio-button to pick export format"
   },
   "loggerExportEncodePlain": {
-    "message": "Rohtext",
+    "message": "Einfach",
     "description": "Label for radio-button to pick export text format"
   },
   "loggerExportEncodeMarkdown": {
@@ -956,7 +956,7 @@
     "description": "Label for the URL of the page"
   },
   "supportS6Select1": {
-    "message": "Die Webseite…",
+    "message": "Die Webseite …",
     "description": "Label for widget to select type of issue"
   },
   "supportS6Select1Option0": {
@@ -964,7 +964,7 @@
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option1": {
-    "message": "Zeigt Werbung oder Werbeüberreste",
+    "message": "Zeigt Werbung oder Anzeigenreste",
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option2": {
@@ -1000,7 +1000,7 @@
     "description": "Text for 'Unredact' button"
   },
   "aboutPrivacyPolicy": {
-    "message": "Datenschutzerklärung",
+    "message": "Datenschutzhinweise",
     "description": "Link to privacy policy on GitHub (English)"
   },
   "aboutChangelog": {
@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "In Datei sichern…",
+    "message": "In Datei sichern …",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1048,11 +1048,11 @@
     "description": "English: my-ublock-backup_{{datetime}}.txt"
   },
   "aboutRestoreDataButton": {
-    "message": "Aus Datei wiederherstellen…",
+    "message": "Aus Datei wiederherstellen …",
     "description": "English: Restore from file..."
   },
   "aboutResetDataButton": {
-    "message": "Auf Werkseinstellungen zurücksetzen…",
+    "message": "Auf Werkseinstellungen zurücksetzen …",
     "description": "English: Reset to default settings..."
   },
   "aboutRestoreDataConfirm": {
@@ -1115,6 +1115,10 @@
     "message": "aus",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Seite blockiert",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin hat das Laden der folgenden Seite verhindert:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Dieses Fenster schließen",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Nicht noch einmal vor dieser Seite warnen",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Striktes Blockieren für {{hostname}} deaktivieren",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Permanent",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Fortfahren",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "In den Cloud-Speicher exportieren",
@@ -1192,11 +1204,11 @@
     "description": ""
   },
   "contextMenuBlockElementInFrame": {
-    "message": "Element im Frame blockieren…",
+    "message": "Element im Frame blockieren …",
     "description": "An entry in the browser's contextual menu"
   },
   "contextMenuSubscribeToList": {
-    "message": "Filterliste abonnieren…",
+    "message": "Filterliste abonnieren …",
     "description": "An entry in the browser's contextual menu"
   },
   "contextMenuTemporarilyAllowLargeMediaElements": {

@@ -26,12 +26,14 @@
 import cacheStorage from './cachestorage.js';
 import logger from './logger.js';
 import µb from './background.js';
+import { StaticFilteringParser } from './static-filtering-parser.js';
+import { i18n$ } from './i18n.js';
 
 /******************************************************************************/
 
 const reIsExternalPath = /^(?:[a-z-]+):\/\//;
 const reIsUserAsset = /^user-/;
-const errorCantConnectTo = vAPI.i18n('errorCantConnectTo');
+const errorCantConnectTo = i18n$('errorCantConnectTo');
 
 const assets = {};
 
@@ -267,7 +269,10 @@ assets.fetchFilterList = async function(mainlistURL) {
             }
             if ( result instanceof Object === false ) { continue; }
             const content = result.content;
-            const slices = µb.preparseDirectives.split(content);
+            const slices = StaticFilteringParser.utils.preparser.splitter(
+                content,
+                vAPI.webextFlavor.env
+            );
             for ( let i = 0, n = slices.length - 1; i < n; i++ ) {
                 const slice = content.slice(slices[i+0], slices[i+1]);
                 if ( (i & 1) !== 0 ) {

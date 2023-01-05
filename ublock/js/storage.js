@@ -19,7 +19,7 @@
     Home: https://github.com/gorhill/uBlock
 */
 
-/* globals WebAssembly */
+/* globals browser, WebAssembly */
 
 'use strict';
 
@@ -37,6 +37,7 @@ import staticFilteringReverseLookup from './reverselookup.js';
 import staticNetFilteringEngine from './static-net-filtering.js';
 import µb from './background.js';
 import { hostnameFromURI } from './uri-utils.js';
+import { i18n, i18n$ } from './i18n.js';
 import { redirectEngine } from './redirect-engine.js';
 import { sparseBase64 } from './base64-custom.js';
 import { StaticFilteringParser } from './static-filtering-parser.js';
@@ -617,6 +618,36 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
 /******************************************************************************/
 
+µb.hasInMemoryFilter = function(raw) {
+    return this.inMemoryFilters.includes(raw);
+};
+
+µb.addInMemoryFilter = async function(raw) {
+    if ( this.inMemoryFilters.includes(raw) ){ return true; }
+    this.inMemoryFilters.push(raw);
+    this.inMemoryFiltersCompiled = '';
+    await this.loadFilterLists();
+    return true;
+};
+
+µb.removeInMemoryFilter = async function(raw) {
+    const pos = this.inMemoryFilters.indexOf(raw);
+    if ( pos === -1 ) { return false; }
+    this.inMemoryFilters.splice(pos, 1);
+    this.inMemoryFiltersCompiled = '';
+    await this.loadFilterLists();
+    return false;
+};
+
+µb.clearInMemoryFilters = async function() {
+    if ( this.inMemoryFilters.length === 0 ) { return; }
+    this.inMemoryFilters = [];
+    this.inMemoryFiltersCompiled = '';
+    await this.loadFilterLists();
+};
+
+/******************************************************************************/
+
 µb.getAvailableLists = async function() {
     let oldAvailableLists = {},
         newAvailableLists = {};
@@ -625,7 +656,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     newAvailableLists[this.userFiltersPath] = {
         content: 'filters',
         group: 'user',
-        title: vAPI.i18n('1pPageName'),
+        title: i18n$('1pPageName'),
     };
 
     // Custom filter lists.
@@ -759,12 +790,12 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 
 /******************************************************************************/
 
-µb.loadFilterLists = (( ) => {
+{
     const loadedListKeys = [];
     let loadingPromise;
     let t0 = 0;
 
-    const onDone = function() {
+    const onDone = ( ) => {
         ubolog(`loadFilterLists() took ${Date.now()-t0} ms`);
 
         staticNetFilteringEngine.freeze();
@@ -772,30 +803,30 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         redirectEngine.freeze();
         vAPI.net.unsuspend();
 
-        vAPI.storage.set({ 'availableFilterLists': this.availableFilterLists });
+        vAPI.storage.set({ 'availableFilterLists': µb.availableFilterLists });
 
         vAPI.messaging.broadcast({
             what: 'staticFilteringDataChanged',
-            parseCosmeticFilters: this.userSettings.parseAllABPHideFilters,
-            ignoreGenericCosmeticFilters: this.userSettings.ignoreGenericCosmeticFilters,
+            parseCosmeticFilters: µb.userSettings.parseAllABPHideFilters,
+            ignoreGenericCosmeticFilters: µb.userSettings.ignoreGenericCosmeticFilters,
             listKeys: loadedListKeys
         });
 
-        this.selfieManager.destroy();
+        µb.selfieManager.destroy();
         lz4Codec.relinquish();
-        this.compiledFormatChanged = false;
+        µb.compiledFormatChanged = false;
 
         loadingPromise = undefined;
     };
 
-    const applyCompiledFilters = function(assetKey, compiled) {
+    const applyCompiledFilters = (assetKey, compiled) => {
         const snfe = staticNetFilteringEngine;
         const sxfe = staticExtFilteringEngine;
-        let acceptedCount = snfe.acceptedCount + sxfe.acceptedCount,
-            discardedCount = snfe.discardedCount + sxfe.discardedCount;
-        this.applyCompiledFilters(compiled, assetKey === this.userFiltersPath);
-        if ( this.availableFilterLists.hasOwnProperty(assetKey) ) {
-            const entry = this.availableFilterLists[assetKey];
+        let acceptedCount = snfe.acceptedCount + sxfe.acceptedCount;
+        let discardedCount = snfe.discardedCount + sxfe.discardedCount;
+        µb.applyCompiledFilters(compiled, assetKey === µb.userFiltersPath);
+        if ( µb.availableFilterLists.hasOwnProperty(assetKey) ) {
+            const entry = µb.availableFilterLists[assetKey];
             entry.entryCount = snfe.acceptedCount + sxfe.acceptedCount -
                 acceptedCount;
             entry.entryUsedCount = entry.entryCount -
@@ -804,8 +835,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         loadedListKeys.push(assetKey);
     };
 
-    const onFilterListsReady = function(lists) {
-        this.availableFilterLists = lists;
+    const onFilterListsReady = lists => {
+        µb.availableFilterLists = lists;
 
         if ( vAPI.Net.canSuspend() ) {
             vAPI.net.suspend();
@@ -813,7 +844,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         redirectEngine.reset();
         staticExtFilteringEngine.reset();
         staticNetFilteringEngine.reset();
-        this.selfieManager.destroy();
+        µb.selfieManager.destroy();
         staticFilteringReverseLookup.resetLists();
 
         // We need to build a complete list of assets to pull first: this is
@@ -824,37 +855,44 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         for ( const assetKey in lists ) {
             if ( lists.hasOwnProperty(assetKey) === false ) { continue; }
             if ( lists[assetKey].off ) { continue; }
-
             toLoad.push(
-                this.getCompiledFilterList(assetKey).then(details => {
-                    applyCompiledFilters.call(
-                        this,
-                        details.assetKey,
-                        details.content
-                    );
+                µb.getCompiledFilterList(assetKey).then(details => {
+                    applyCompiledFilters(details.assetKey, details.content);
                 })
             );
+        }
+
+        if ( µb.inMemoryFilters.length !== 0 ) {
+            if ( µb.inMemoryFiltersCompiled === '' ) {
+                µb.inMemoryFiltersCompiled =
+                    µb.compileFilters(
+                        µb.inMemoryFilters.join('\n'),
+                        { assetKey: 'in-memory'}
+                    );
+            }
+            if ( µb.inMemoryFiltersCompiled !== '' ) {
+                toLoad.push(
+                    µb.applyCompiledFilters(µb.inMemoryFiltersCompiled, true)
+                );
+            }
         }
 
         return Promise.all(toLoad);
     };
 
-    return function() {
-        if ( loadingPromise instanceof Promise === false ) {
-            t0 = Date.now();
-            loadedListKeys.length = 0;
-            loadingPromise = Promise.all([
-                this.getAvailableLists().then(lists =>
-                    onFilterListsReady.call(this, lists)
-                ),
-                this.loadRedirectResources(),
-            ]).then(( ) => {
-                onDone.call(this);
-            });
-        }
+    µb.loadFilterLists = function() {
+        if ( loadingPromise instanceof Promise ) { return loadingPromise; }
+        t0 = Date.now();
+        loadedListKeys.length = 0;
+        loadingPromise = Promise.all([
+            this.getAvailableLists().then(lists => onFilterListsReady(lists)),
+            this.loadRedirectResources(),
+        ]).then(( ) => {
+            onDone();
+        });
         return loadingPromise;
     };
-})();
+}
 
 /******************************************************************************/
 
@@ -972,9 +1010,14 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     // Useful references:
     //    https://adblockplus.org/en/filter-cheatsheet
     //    https://adblockplus.org/en/filters
-    const lineIter = new LineIterator(this.preparseDirectives.prune(rawText));
-    const parser = new StaticFilteringParser({ expertMode });
+    const parser = new StaticFilteringParser({
+        expertMode,
+        nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
+    });
     const compiler = staticNetFilteringEngine.createCompiler(parser);
+    const lineIter = new LineIterator(
+        parser.utils.preparser.prune(rawText, vAPI.webextFlavor.env)
+    );
 
     parser.setMaxTokenLength(staticNetFilteringEngine.MAX_TOKEN_LENGTH);
 
@@ -1039,121 +1082,6 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         skipGenericCosmetic: this.userSettings.ignoreGenericCosmeticFilters,
         skipCosmetic: !firstparty && !this.userSettings.parseAllABPHideFilters
     });
-};
-
-/******************************************************************************/
-
-// https://github.com/AdguardTeam/AdguardBrowserExtension/issues/917
-
-µb.preparseDirectives = {
-    // This method returns an array of indices, corresponding to position in
-    // the content string which should alternatively be parsed and discarded.
-    split: function(content) {
-        const reIf = /^!#(if|endif)\b([^\n]*)(?:[\n\r]+|$)/gm;
-        const soup = vAPI.webextFlavor.soup;
-        const stack = [];
-        const shouldDiscard = ( ) => stack.some(v => v);
-        const parts = [ 0 ];
-        let discard = false;
-
-        for (;;) {
-            const match = reIf.exec(content);
-            if ( match === null ) { break; }
-
-            switch ( match[1] ) {
-            case 'if':
-                let expr = match[2].trim();
-                const target = expr.charCodeAt(0) === 0x21 /* '!' */;
-                if ( target ) { expr = expr.slice(1); }
-                const token = this.tokens.get(expr);
-                const startDiscard =
-                    token === 'false' && target === false ||
-                    token !== undefined && soup.has(token) === target;
-                if ( discard === false && startDiscard ) {
-                    parts.push(match.index);
-                    discard = true;
-                }
-                stack.push(startDiscard);
-                break;
-
-            case 'endif':
-                stack.pop();
-                const stopDiscard = shouldDiscard() === false;
-                if ( discard && stopDiscard ) {
-                    parts.push(match.index + match[0].length);
-                    discard = false;
-                }
-                break;
-
-            default:
-                break;
-            }
-        }
-
-        parts.push(content.length);
-        return parts;
-    },
-
-    prune: function(content) {
-        const parts = this.split(content);
-        const out = [];
-        for ( let i = 0, n = parts.length - 1; i < n; i += 2 ) {
-            const beg = parts[i+0];
-            const end = parts[i+1];
-            out.push(content.slice(beg, end));
-        }
-        return out.join('\n');
-    },
-
-    getHints: function() {
-        const out = [];
-        const vals = new Set();
-        for ( const [ key, val ] of this.tokens ) {
-            if ( vals.has(val) ) { continue; }
-            vals.add(val);
-            out.push(key);
-        }
-        return out;
-    },
-
-    getTokens: function() {
-        const out = new Map();
-        const soup = vAPI.webextFlavor.soup;
-        for ( const [ key, val ] of this.tokens ) {
-            out.set(key, val !== 'false' && soup.has(val));
-        }
-        return Array.from(out);
-    },
-
-    tokens: new Map([
-        [ 'ext_ublock', 'ublock' ],
-        [ 'env_chromium', 'chromium' ],
-        [ 'env_edge', 'edge' ],
-        [ 'env_firefox', 'firefox' ],
-        [ 'env_legacy', 'legacy' ],
-        [ 'env_mobile', 'mobile' ],
-        [ 'env_safari', 'safari' ],
-        [ 'cap_html_filtering', 'html_filtering' ],
-        [ 'cap_user_stylesheet', 'user_stylesheet' ],
-        [ 'false', 'false' ],
-        // Hoping ABP-only list maintainers can at least make use of it to
-        // help non-ABP content blockers better deal with filters benefiting
-        // only ABP.
-        [ 'ext_abp', 'false' ],
-        // Compatibility with other blockers
-        // https://kb.adguard.com/en/general/how-to-create-your-own-ad-filters#adguard-specific
-        [ 'adguard', 'adguard' ],
-        [ 'adguard_app_android', 'false' ],
-        [ 'adguard_app_ios', 'false' ],
-        [ 'adguard_app_mac', 'false' ],
-        [ 'adguard_app_windows', 'false' ],
-        [ 'adguard_ext_android_cb', 'false' ],
-        [ 'adguard_ext_chromium', 'chromium' ],
-        [ 'adguard_ext_edge', 'edge' ],
-        [ 'adguard_ext_firefox', 'firefox' ],
-        [ 'adguard_ext_opera', 'chromium' ],
-        [ 'adguard_ext_safari', 'false' ],
-    ]),
 };
 
 /******************************************************************************/
@@ -1261,15 +1189,13 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
 // be generated if the user doesn't change his filter lists selection for
 // some set time.
 
-µb.selfieManager = (( ) => {
-    let createTimer;
-    let destroyTimer;
-
+{
     // As of 2018-05-31:
     //   JSON.stringify-ing ourselves results in a better baseline
     //   memory usage at selfie-load time. For some reasons.
 
     const create = async function() {
+        if ( µb.inMemoryFilters.length !== 0 ) { return; }
         await Promise.all([
             io.put(
                 'selfie/main',
@@ -1315,9 +1241,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     };
 
     const load = async function() {
-        if ( µb.selfieIsInvalid ) {
-            return false;
-        }
+        if ( µb.selfieIsInvalid ) { return false; }
         try {
             const results = await Promise.all([
                 loadMain(),
@@ -1339,6 +1263,9 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         destroy();
         return false;
     };
+
+    let createTimer;
+    let destroyTimer;
 
     const destroy = function() {
         io.remove(/^selfie\//);
@@ -1365,8 +1292,8 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
         µb.selfieIsInvalid = true;
     };
 
-    return { load, destroy: destroyAsync };
-})();
+    µb.selfieManager = { load, destroy: destroyAsync };
+}
 
 /******************************************************************************/
 
@@ -1505,7 +1432,7 @@ self.addEventListener('hiddenSettingsChanged', ( ) => {
     if ( typeof details.lang === 'string' ) {
         let re = this.listMatchesEnvironment.reLang;
         if ( re === undefined ) {
-            const match = /^[a-z]+/.exec(browser.i18n.getUILanguage());
+            const match = /^[a-z]+/.exec(i18n.getUILanguage());
             if ( match !== null ) {
                 re = new RegExp('\\b' + match[0] + '\\b');
                 this.listMatchesEnvironment.reLang = re;

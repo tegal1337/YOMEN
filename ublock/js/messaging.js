@@ -19,6 +19,8 @@
     Home: https://github.com/gorhill/uBlock
 */
 
+/* globals browser */
+
 'use strict';
 
 /******************************************************************************/
@@ -33,12 +35,13 @@ import logger from './logger.js';
 import lz4Codec from './lz4.js';
 import io from './assets.js';
 import scriptletFilteringEngine from './scriptlet-filtering.js';
-import staticExtFilteringEngine from './static-ext-filtering.js';
 import staticFilteringReverseLookup from './reverselookup.js';
 import staticNetFilteringEngine from './static-net-filtering.js';
 import µb from './background.js';
 import webRequest from './traffic.js';
 import { denseBase64 } from './base64-custom.js';
+import { dnrRulesetFromRawLists } from './static-dnr-filtering.js';
+import { i18n$ } from './i18n.js';
 import { redirectEngine } from './redirect-engine.js';
 import { StaticFilteringParser } from './static-filtering-parser.js';
 
@@ -143,6 +146,110 @@ const onMessage = function(request, sender, callback) {
         });
         return;
 
+    case 'snfeToDNR': {
+        const listPromises = [];
+        const listNames = [];
+        for ( const assetKey of µb.selectedFilterLists ) {
+            listPromises.push(
+                io.get(assetKey, { dontCache: true }).then(details => {
+                    listNames.push(assetKey);
+                    return { name: assetKey, text: details.content };
+                })
+            );
+        }
+        const options = {
+            extensionPaths: redirectEngine.getResourceDetails(),
+            env: vAPI.webextFlavor.env,
+        };
+        const t0 = Date.now();
+        dnrRulesetFromRawLists(listPromises, options).then(result => {
+            const { network } = result;
+            const replacer = (k, v) => {
+                if ( k.startsWith('__') ) { return; }
+                if ( Array.isArray(v) ) {
+                    return v.sort();
+                }
+                if ( v instanceof Object ) {
+                    const sorted = {};
+                    for ( const kk of Object.keys(v).sort() ) {
+                        sorted[kk] = v[kk];
+                    }
+                    return sorted;
+                }
+                return v;
+            };
+            const isUnsupported = rule =>
+                rule._error !== undefined;
+            const isRegex = rule =>
+                rule.condition !== undefined &&
+                rule.condition.regexFilter !== undefined;
+            const isRedirect = rule =>
+                rule.action !== undefined &&
+                rule.action.type === 'redirect' &&
+                rule.action.redirect.extensionPath !== undefined;
+            const isCsp = rule =>
+                rule.action !== undefined &&
+                rule.action.type === 'modifyHeaders';
+            const isRemoveparam = rule =>
+                rule.action !== undefined &&
+                rule.action.type === 'redirect' &&
+                rule.action.redirect.transform !== undefined;
+            const runtime = Date.now() - t0;
+            const { ruleset } = network;
+            const out = [
+                `dnrRulesetFromRawLists(${JSON.stringify(listNames, null, 2)})`,
+                `Run time: ${runtime} ms`,
+                `Filters count: ${network.filterCount}`,
+                `Accepted filter count: ${network.acceptedFilterCount}`,
+                `Rejected filter count: ${network.rejectedFilterCount}`,
+                `Resulting DNR rule count: ${ruleset.length}`,
+            ];
+            const good = ruleset.filter(rule =>
+                isUnsupported(rule) === false &&
+                isRegex(rule) === false &&
+                isRedirect(rule) === false &&
+                isCsp(rule) === false &&
+                isRemoveparam(rule) === false
+            );
+            out.push(`+ Good filters (${good.length}): ${JSON.stringify(good, replacer, 2)}`);
+            const regexes = ruleset.filter(rule =>
+                isUnsupported(rule) === false &&
+                isRegex(rule) &&
+                isRedirect(rule) === false &&
+                isCsp(rule) === false &&
+                isRemoveparam(rule) === false
+            );
+            out.push(`+ Regex-based filters (${regexes.length}): ${JSON.stringify(regexes, replacer, 2)}`);
+            const redirects = ruleset.filter(rule =>
+                isUnsupported(rule) === false &&
+                isRedirect(rule)
+            );
+            out.push(`+ 'redirect=' filters (${redirects.length}): ${JSON.stringify(redirects, replacer, 2)}`);
+            const headers = ruleset.filter(rule =>
+                isUnsupported(rule) === false &&
+                isCsp(rule)
+            );
+            out.push(`+ 'csp=' filters (${headers.length}): ${JSON.stringify(headers, replacer, 2)}`);
+            const removeparams = ruleset.filter(rule =>
+                isUnsupported(rule) === false &&
+                isRemoveparam(rule)
+            );
+            out.push(`+ 'removeparam=' filters (${removeparams.length}): ${JSON.stringify(removeparams, replacer, 2)}`);
+            const bad = ruleset.filter(rule =>
+                isUnsupported(rule)
+            );
+            out.push(`+ Unsupported filters (${bad.length}): ${JSON.stringify(bad, replacer, 2)}`);
+            out.push(`+ generichide exclusions (${network.generichideExclusions.length}): ${JSON.stringify(network.generichideExclusions, replacer, 2)}`);
+            out.push(`+ Cosmetic filters: ${result.specificCosmetic.size}`);
+            for ( const details of result.specificCosmetic ) {
+                out.push(`    ${JSON.stringify(details)}`);
+            }
+
+            callback(out.join('\n'));
+        });
+        return;
+    }
+
     default:
         break;
     }
@@ -197,19 +304,32 @@ const onMessage = function(request, sender, callback) {
         µb.elementPickerExec(request.tabId, 0, request.targetURL, request.zap);
         break;
 
+    case 'loggerDisabled':
+        µb.clearInMemoryFilters();
+        break;
+
     case 'gotoURL':
         µb.openNewTab(request.details);
         break;
 
-    case 'reloadTab':
-        if ( vAPI.isBehindTheSceneTabId(request.tabId) === false ) {
-            vAPI.tabs.reload(request.tabId, request.bypassCache === true);
-            if ( request.select && vAPI.tabs.select ) {
-                vAPI.tabs.select(request.tabId);
+    // https://github.com/uBlockOrigin/uBlock-issues/issues/1954
+    //   In case of document-blocked page, navigate to blocked URL instead
+    //   of forcing a reload.
+    case 'reloadTab': {
+        if ( vAPI.isBehindTheSceneTabId(request.tabId) ) { break; }
+        const { tabId, bypassCache, url, select } = request;
+        vAPI.tabs.get(tabId).then(tab => {
+            if ( url && tab && url !== tab.url ) {
+                vAPI.tabs.replace(tabId, url);
+            } else {
+                vAPI.tabs.reload(tabId, bypassCache === true);
             }
+        });
+        if ( select && vAPI.tabs.select ) {
+            vAPI.tabs.select(tabId);
         }
         break;
-
+    }
     case 'setWhitelist':
         µb.netWhitelist = µb.whitelistFromString(request.whitelist);
         µb.saveWhitelist();
@@ -631,15 +751,17 @@ const retrieveContentScriptParameters = async function(sender, request) {
     request.domain = domainFromHostname(request.hostname);
     request.entity = entityFromDomain(request.domain);
 
-    response.specificCosmeticFilters =
+    const scf = response.specificCosmeticFilters =
         cosmeticFilteringEngine.retrieveSpecificSelectors(request, response);
 
     // The procedural filterer's code is loaded only when needed and must be
     // present before returning response to caller.
     if (
-        Array.isArray(response.specificCosmeticFilters.proceduralFilters) || (
-            logger.enabled &&
-            response.specificCosmeticFilters.exceptedFilters.length !== 0
+        scf.proceduralFilters.length !== 0 || (
+            logger.enabled && (
+                scf.convertedProceduralFilters.length !== 0 ||
+                scf.exceptedFilters.length !== 0                
+            )
         )
     ) {
         await vAPI.tabs.executeScript(tabId, {
@@ -654,11 +776,8 @@ const retrieveContentScriptParameters = async function(sender, request) {
     // https://github.com/uBlockOrigin/uBlock-issues/issues/688#issuecomment-748179731
     //   For non-network URIs, scriptlet injection is deferred to here. The
     //   effective URL is available here in `request.url`.
-    if (
-        µb.canInjectScriptletsNow === false ||
-        isNetworkURI(sender.frameURL) === false
-    ) {
-        scriptletFilteringEngine.injectNow(request);
+    if ( request.needScriptlets ) {
+        response.scriptlets = scriptletFilteringEngine.injectNow(request);
     }
 
     // https://github.com/NanoMeow/QuickReports/issues/6#issuecomment-414516623
@@ -705,6 +824,10 @@ const onMessage = function(request, sender, callback) {
     switch ( request.what ) {
     case 'cosmeticFiltersInjected':
         cosmeticFilteringEngine.addToSelectorCache(request);
+        break;
+
+    case 'disableGenericCosmeticFilteringSurveyor':
+        cosmeticFilteringEngine.disableSurveyor(request);
         break;
 
     case 'getCollapsibleBlockedRequests':
@@ -790,7 +913,9 @@ const onMessage = function(request, sender, callback) {
                 mouse: µb.epickerArgs.mouse,
                 zap: µb.epickerArgs.zap,
                 eprom: µb.epickerArgs.eprom,
-                pickerURL: vAPI.getURL(`/web_accessible_resources/epicker-ui.html?secret=${vAPI.warSecret()}`),
+                pickerURL: vAPI.getURL(
+                    `/web_accessible_resources/epicker-ui.html?secret=${vAPI.warSecret()}`
+                ),
             });
             µb.epickerArgs.target = '';
         });
@@ -964,7 +1089,7 @@ const backupUserData = async function() {
         userFilters: userFilters.content,
     };
 
-    const filename = vAPI.i18n('aboutBackupFilename')
+    const filename = i18n$('aboutBackupFilename')
         .replace('{{datetime}}', µb.dateNowToSensibleString())
         .replace(/ +/g, '_');
     µb.restoreBackupSettings.lastBackupFile = filename;
@@ -1193,40 +1318,6 @@ const modifyRuleset = function(details) {
     }
 };
 
-// Shortcuts
-const getShortcuts = function(callback) {
-    if ( µb.canUseShortcuts === false ) {
-        return callback([]);
-    }
-
-    vAPI.commands.getAll(commands => {
-        let response = [];
-        for ( let command of commands ) {
-            let desc = command.description;
-            let match = /^__MSG_(.+?)__$/.exec(desc);
-            if ( match !== null ) {
-                desc = vAPI.i18n(match[1]);
-            }
-            if ( desc === '' ) { continue; }
-            command.description = desc;
-            response.push(command);
-        }
-        callback(response);
-    });
-};
-
-const setShortcut = function(details) {
-    if  ( µb.canUpdateShortcuts === false ) { return; }
-    if ( details.shortcut === undefined ) {
-        vAPI.commands.reset(details.name);
-        µb.commandShortcuts.delete(details.name);
-    } else {
-        vAPI.commands.update({ name: details.name, shortcut: details.shortcut });
-        µb.commandShortcuts.set(details.name, details.shortcut);
-    }
-    vAPI.storage.set({ commandShortcuts: Array.from(µb.commandShortcuts) });
-};
-
 // Support
 const getSupportData = async function() {
     const diffArrays = function(modified, original) {
@@ -1344,7 +1435,7 @@ const getSupportData = async function() {
             scriptlet: scriptletFilteringEngine.getFilterCount(),
             html: htmlFilteringEngine.getFilterCount(),
         },
-        'listset (total-discarded, last updated)': {
+        'listset (total-discarded, last-updated)': {
             removed: removedListset,
             added: addedListset,
             default: defaultListset,
@@ -1388,9 +1479,6 @@ const onMessage = function(request, sender, callback) {
             callback(localData);
         });
 
-    case 'getShortcuts':
-        return getShortcuts(callback);
-
     case 'getSupportData': {
         getSupportData().then(response => {
             callback(response);
@@ -1418,7 +1506,6 @@ const onMessage = function(request, sender, callback) {
     switch ( request.what ) {
     case 'dashboardConfig':
         response = {
-            canUpdateShortcuts: µb.canUpdateShortcuts,
             noDashboard: µb.noDashboard,
         };
         break;
@@ -1427,8 +1514,10 @@ const onMessage = function(request, sender, callback) {
         response = {};
         if ( (request.hintUpdateToken || 0) === 0 ) {
             response.redirectResources = redirectEngine.getResourceDetails();
-            response.preparseDirectiveTokens = µb.preparseDirectives.getTokens();
-            response.preparseDirectiveHints = µb.preparseDirectives.getHints();
+            response.preparseDirectiveTokens =
+                StaticFilteringParser.utils.preparser.getTokens(vAPI.webextFlavor.env);
+            response.preparseDirectiveHints =
+                StaticFilteringParser.utils.preparser.getHints();
             response.expertMode = µb.hiddenSettings.filterAuthorMode;
         }
         if ( request.hintUpdateToken !== µb.pageStoresToken ) {
@@ -1475,10 +1564,6 @@ const onMessage = function(request, sender, callback) {
 
     case 'resetUserData':
         resetUserData();
-        break;
-
-    case 'setShortcut':
-        setShortcut(request);
         break;
 
     case 'writeHiddenSettings':
@@ -1587,50 +1672,22 @@ const getURLFilteringData = function(details) {
         }
         if ( response.dirty ) { continue; }
         puf.evaluateZ(context, url, type);
-        response.dirty = colorEntry.own !== (
+        const pown = (
             puf.r !== 0 &&
             puf.context === context &&
             puf.url === url &&
             puf.type === type
         );
+        response.dirty = colorEntry.own !== pown || colorEntry.r !== puf.r;
     }
     return response;
-};
-
-const compileTemporaryException = function(filter) {
-    const parser = new StaticFilteringParser();
-    parser.analyze(filter);
-    if ( parser.shouldDiscard() ) { return; }
-    return staticExtFilteringEngine.compileTemporary(parser);
-};
-
-const toggleTemporaryException = function(details) {
-    const result = compileTemporaryException(details.filter);
-    if ( result === undefined ) { return false; }
-    const { session, selector } = result;
-    if ( session.has(1, selector) ) {
-        session.remove(1, selector);
-        return false;
-    }
-    session.add(1, selector);
-    return true;
-};
-
-const hasTemporaryException = function(details) {
-    const result = compileTemporaryException(details.filter);
-    if ( result === undefined ) { return false; }
-    const { session, selector } = result;
-    return session && session.has(1, selector);
 };
 
 const onMessage = function(request, sender, callback) {
     // Async
     switch ( request.what ) {
     case 'readAll':
-        if (
-            logger.ownerId !== undefined &&
-            logger.ownerId !== request.ownerId
-        ) {
+        if ( logger.ownerId !== undefined && logger.ownerId !== request.ownerId ) {
             return callback({ unavailable: true });
         }
         vAPI.tabs.getCurrent().then(tab => {
@@ -1638,6 +1695,13 @@ const onMessage = function(request, sender, callback) {
         });
         return;
 
+    case 'toggleInMemoryFilter': {
+        const promise = µb.hasInMemoryFilter(request.filter)
+            ? µb.removeInMemoryFilter(request.filter)
+            : µb.addInMemoryFilter(request.filter);
+        promise.then(status => { callback(status); });
+        return;
+    }
     default:
         break;
     }
@@ -1646,14 +1710,14 @@ const onMessage = function(request, sender, callback) {
     let response;
 
     switch ( request.what ) {
-    case 'hasTemporaryException':
-        response = hasTemporaryException(request);
+    case 'hasInMemoryFilter':
+        response = µb.hasInMemoryFilter(request.filter);
         break;
 
     case 'releaseView':
-        if ( request.ownerId === logger.ownerId ) {
-            logger.ownerId = undefined;
-        }
+        if ( request.ownerId !== logger.ownerId ) { break; }
+        logger.ownerId = undefined;
+        µb.clearInMemoryFilters();
         break;
 
     case 'saveURLFilteringRules':
@@ -1674,10 +1738,6 @@ const onMessage = function(request, sender, callback) {
 
     case 'getURLFilteringData':
         response = getURLFilteringData(request);
-        break;
-
-    case 'toggleTemporaryException':
-        response = toggleTemporaryException(request);
         break;
 
     default:

@@ -1115,6 +1115,10 @@
     "message": "বন্ধ",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "পেজটি ব্লক করা হয়েছে",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uব্লক অরিজিন নিচের পৃষ্ঠা লোড করাকে প্রতিহত করেছে:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "এই উইন্ডোটি বন্ধ করুন",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "এই সাইটের ব্যাপারে আর সতর্ক করবেন না",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "{{hostname}}-এর জন্য কঠোর অবরোধ নিষ্ক্রিয় করুন",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "স্থায়ীভাবে",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "এগিয়ে যান",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "ক্লাউড সঞ্চয়ে রপ্তানি করুন",

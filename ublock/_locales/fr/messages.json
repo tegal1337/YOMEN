@@ -1115,6 +1115,10 @@
     "message": "Arrêt",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Page bloquée",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock₀ a empêché le chargement de la page suivante :",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Fermer cette fenêtre",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Ne plus m'avertir à propos de ce site",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Désactiver le blocage strict du domaine {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "De manière définitive",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Poursuivre",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Exporter vers le stockage dans le nuage",

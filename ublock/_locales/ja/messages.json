@@ -612,7 +612,7 @@
     "description": "English: a sort option for list of rules."
   },
   "whitelistPrompt": {
-    "message": "[信頼するサイト] では uBlock Origin を無効にするウェブページを指定します。1 行につき 1 つのエントリーです。",
+    "message": "[信頼するサイト] では uBlock Origin を無効にするウェブページを指定します。1 行につき 1 つです。",
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "ファイルにバックアップ",
+    "message": "ファイルにバックアップ...",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1115,6 +1115,10 @@
     "message": "オフ",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "ブロックしたページ",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin は以下のページの読み込みを防ぎました:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "このウィンドウを閉じる",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "次回からこのサイトについて警告を表示しない",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "{{hostname}} への厳格なブロッキングを無効にする",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "永続的",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "続行",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "クラウドストレージにエクスポートします",

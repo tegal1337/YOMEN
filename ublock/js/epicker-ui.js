@@ -23,8 +23,6 @@
 
 'use strict';
 
-/******************************************************************************/
-
 import './codemirror/ubo-static-filtering.js';
 
 import { hostnameFromURI } from './uri-utils.js';
@@ -115,11 +113,10 @@ const filterFromTextarea = function() {
     const sfp = staticFilteringParser;
     sfp.analyze(filter);
     sfp.analyzeExtra();
-    if (
-        sfp.category !== sfp.CATStaticExtFilter &&
-        sfp.category !== sfp.CATStaticNetFilter ||
-        sfp.shouldDiscard()
-    ) {
+    if ( sfp.shouldDiscard() ) { return '!'; }
+    if ( sfp.category === sfp.CATStaticExtFilter ) {
+        if ( sfp.hasFlavor(sfp.BITFlavorExtCosmetic) === false ) { return '!'; }
+    } else if ( sfp.category !== sfp.CATStaticNetFilter ) {
         return '!';
     }
     return filter;
@@ -604,6 +601,11 @@ const onStartMoving = (( ) => {
     let rMax = 0, bMax = 0;
     let timer;
 
+    const eatEvent = function(ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+    };
+
     const move = ( ) => {
         timer = undefined;
         const r1 = Math.min(Math.max(r0 - mx1 + mx0, 2), rMax);
@@ -705,13 +707,6 @@ const svgListening = (( ) => {
         }
     };
 })();
-
-/******************************************************************************/
-
-const eatEvent = function(ev) {
-    ev.stopPropagation();
-    ev.preventDefault();
-};
 
 /******************************************************************************/
 
@@ -834,7 +829,10 @@ const startPicker = function() {
     $id('candidateFilters').addEventListener('click', onCandidateClicked);
     $stor('#resultsetDepth input').addEventListener('input', onDepthChanged);
     $stor('#resultsetSpecificity input').addEventListener('input', onSpecificityChanged);
-    staticFilteringParser = new StaticFilteringParser({ interactive: true });
+    staticFilteringParser = new StaticFilteringParser({
+        interactive: true,
+        nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
+    });
 };
 
 /******************************************************************************/

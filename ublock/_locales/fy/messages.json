@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "Reservekopy nei bestân",
+    "message": "Reservekopy nei bestân meitsje…",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1115,6 +1115,10 @@
     "message": "útskeakele",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Side blokkearre",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin hat it laden fan de folgjende side opkeard:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Dit finster slute",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "My net mear warskôgje oer dizze website",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Strikte blokkearring foar {{hostname}} útskeakelje",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Permanint",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Trochgean",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Eksportearje nei cloudûnthâld",

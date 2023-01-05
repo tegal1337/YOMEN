@@ -5,7 +5,7 @@
       https://material.io/
 
     Color names from:
-      https://protocol.mozilla.org/fundamentals/color.html
+      https://protocol.mozilla.org/docs/fundamentals/color.html
 
     Tools:
       Lightness validator: https://www.hsluv.org/
@@ -128,6 +128,8 @@
 :root {
     --font-size: 14px;
     --font-size-smaller: 13px;
+    --font-size-xsmall: 11px;
+    --font-size-larger: 15px;
     --font-family: Inter, sans-serif;
     --monospace-size: 12px;
 }
@@ -235,6 +237,7 @@
 
     --dashboard-tab-active-ink-rgb: var(--primary-40);
     --dashboard-tab-focus-surface-rgb: var(--primary-90);
+    --dashboard-highlight-surface-rgb: var(--primary-90);
 
     /* popup panel */
     --popup-cell-cname-ink: #0054d7; /* h260 S:100 Luv:40 */;
@@ -325,6 +328,7 @@
 
     --dashboard-tab-active-ink-rgb: var(--primary-70);
     --dashboard-tab-focus-surface-rgb: var(--primary-20);
+    --dashboard-highlight-surface-rgb: var(--primary-20);
 
     /* popup panel */
     --popup-cell-cname-ink: #93a6ff; /* h260 S:100 Luv:70 */;

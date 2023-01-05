@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "Biztonsági mentés fájlba...",
+    "message": "Biztonsági mentés fájlba",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1115,6 +1115,10 @@
     "message": "kikapcsolva",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Oldal blokkolva",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin nem engedte a következő lap betöltését:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Ablak bezárása",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Ne figyelmeztessen újra ennél az oldalnál",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Kapcsolja ki a szigorú tiltást a(z) {{hostname}} részére",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Véglegesen",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Továbblépés",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Exportálás a felhőszolgáltatásba",

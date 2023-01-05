@@ -19,6 +19,8 @@
     Home: https://github.com/gorhill/uBlock
 */
 
+/* globals browser */
+
 'use strict';
 
 /******************************************************************************/
@@ -149,7 +151,6 @@ const µBlock = {  // jshint ignore:line
     privacySettingsSupported: vAPI.browserSettings instanceof Object,
     cloudStorageSupported: vAPI.cloud instanceof Object,
     canFilterResponseData: typeof browser.webRequest.filterResponseData === 'function',
-    canInjectScriptletsNow: vAPI.webextFlavor.soup.has('chromium'),
 
     // https://github.com/chrisaljoudi/uBlock/issues/180
     // Whitelist directives need to be loaded once the PSL is available
@@ -175,8 +176,8 @@ const µBlock = {  // jshint ignore:line
 
     // Read-only
     systemSettings: {
-        compiledMagic: 46,  // Increase when compiled format changes
-        selfieMagic: 46,    // Increase when selfie format changes
+        compiledMagic: 52,  // Increase when compiled format changes
+        selfieMagic: 52,    // Increase when selfie format changes
     },
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/759#issuecomment-546654501
@@ -209,6 +210,9 @@ const µBlock = {  // jshint ignore:line
     selectedFilterLists: [],
     availableFilterLists: {},
     badLists: new Map(),
+
+    inMemoryFilters: [],
+    inMemoryFiltersCompiled: '',
 
     // https://github.com/uBlockOrigin/uBlock-issues/issues/974
     //   This can be used to defer filtering decision-making.
@@ -281,6 +285,7 @@ const µBlock = {  // jshint ignore:line
         this.fromTabId(tabId); // Must be called AFTER tab context management
         this.realm = '';
         this.id = details.requestId;
+        this.setMethod(details.method);
         this.setURL(details.url);
         this.aliasURL = details.aliasURL || undefined;
         if ( this.itype !== this.SUB_FRAME ) {
@@ -333,24 +338,31 @@ const µBlock = {  // jshint ignore:line
     }
 
     toLogger() {
-        this.tstamp = Date.now();
-        if ( this.domain === undefined ) {
-            void this.getDomain();
-        }
-        if ( this.docDomain === undefined ) {
-            void this.getDocDomain();
-        }
-        if ( this.tabDomain === undefined ) {
-            void this.getTabDomain();
-        }
-        const filters = this.filter;
+        const details = {
+            id: this.id,
+            tstamp: Date.now(),
+            realm: this.realm,
+            method: this.getMethodName(),
+            type: this.stype,
+            tabId: this.tabId,
+            tabDomain: this.getTabDomain(),
+            tabHostname: this.getTabHostname(),
+            docDomain: this.getDocDomain(),
+            docHostname: this.getDocHostname(),
+            domain: this.getDomain(),
+            hostname: this.getHostname(),
+            url: this.url,
+            aliasURL: this.aliasURL,
+            filter: undefined,
+        };
         // Many filters may have been applied to the current context
-        if ( Array.isArray(filters) === false ) {
-            return logger.writeOne(this);
+        if ( Array.isArray(this.filter) === false ) {
+            details.filter = this.filter;
+            return logger.writeOne(details);
         }
-        for ( const filter of filters ) {
-            this.filter = filter;
-            logger.writeOne(this);
+        for ( const filter of this.filter ) {
+            details.filter = filter;
+            logger.writeOne(details);
         }
     }
 };

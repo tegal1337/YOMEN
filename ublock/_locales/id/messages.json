@@ -12,7 +12,7 @@
     "description": "English: uBlock₀ — Dashboard"
   },
   "dashboardUnsavedWarning": {
-    "message": "Peringatan! Anda memiliki perubahan yang belum disimpan",
+    "message": "Peringatan! Anda memiliki ubahan yang belum disimpan",
     "description": "A warning in the dashboard when navigating away from unsaved changes"
   },
   "dashboardUnsavedWarningStay": {
@@ -612,7 +612,7 @@
     "description": "English: a sort option for list of rules."
   },
   "whitelistPrompt": {
-    "message": "Arahan situs tepercaya menentukan halaman web mana yang uBlock Origin harus dinonaktifkan. Satu entri per baris.",
+    "message": "Arahan situs terpercaya menentukan pada halaman web mana uBlock Origin harus dinonaktifkan. Satu entri per baris.",
     "description": "A concise description of the 'Trusted sites' pane."
   },
   "whitelistImport": {
@@ -700,7 +700,7 @@
     "description": "Tooltip for the button to bring up logger output filtering options"
   },
   "loggerRowFiltererBuiltinNot": {
-    "message": "Tidak",
+    "message": "Bukan",
     "description": "A keyword in the built-in row filtering expression"
   },
   "loggerRowFiltererBuiltinEventful": {
@@ -1115,6 +1115,10 @@
     "message": "mati",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Halaman diblokir",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin telah mencegah halaman berikut dimuat:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Tutup jendela ini",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Jangan ingatkan saya lagi tentang situs ini",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Nonaktifkan pemblokiran ketat untuk {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Permanen",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Lanjutkan",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Ekspor ke penyimpanan awan",

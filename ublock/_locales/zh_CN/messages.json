@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "uBlock₀",
+    "message": "uBlock Origin",
     "description": "extension name."
   },
   "extShortDesc": {
@@ -108,7 +108,7 @@
     "description": "For the new mobile-friendly popup design"
   },
   "popupDomainsConnected_v2": {
-    "message": "连接的域名",
+    "message": "已连接的域名",
     "description": "For the new mobile-friendly popup design"
   },
   "popupTipDashboard": {
@@ -160,7 +160,7 @@
     "description": "Tooltip for the no-cosmetic-filtering per-site switch"
   },
   "popupTipNoCosmeticFiltering1": {
-    "message": "单击禁用针对此网站的元素过滤规则",
+    "message": "单击禁用此网站上的元素过滤",
     "description": "Tooltip for the no-cosmetic-filtering per-site switch"
   },
   "popupTipNoCosmeticFiltering2": {
@@ -968,7 +968,7 @@
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option2": {
-    "message": "针对性的画面覆盖或其他骚扰",
+    "message": "存在遮盖或类似问题",
     "description": "An entry in the widget used to select the type of issue"
   },
   "supportS6Select1Option3": {
@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "备份到文件",
+    "message": "备份到文件…",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1115,6 +1115,10 @@
     "message": "关",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "页面已被屏蔽",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin 阻止了下列页面加载：",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "关闭此窗口",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "不再针对此网站作出警告",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "不对 {{hostname}} 进行严格屏蔽",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "永久",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "继续加载",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "导出到云端储存",

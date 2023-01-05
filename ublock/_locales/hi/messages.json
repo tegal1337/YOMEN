@@ -1115,6 +1115,10 @@
     "message": "बंद",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "पृष्ठ प्रतिबंधित है",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin ने इस पेज को लोड होने से रोक दिया हैं:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "इस विंडो को बंद करे",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "इस साइट के बारे में मुझे दोबारा चेतावनी न दें",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "स्ट्रिक्ट ब्लॉकिंग को बंद करें इस साइट पर {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "स्थायी",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "आगे बढ़ें",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "क्लाउड स्टोरेज में भेजें",

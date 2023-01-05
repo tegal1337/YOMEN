@@ -456,7 +456,7 @@
     "description": "Describes the purpose of the 'Ignore generic cosmetic filters' feature."
   },
   "3pSuspendUntilListsAreLoaded": {
-    "message": "Suspend network activity until all filter lists are loaded",
+    "message": "Gantung aktiviti rangkaian sehingga semua senarai penapis dimuatkan",
     "description": "A checkbox in the 'Filter lists' pane"
   },
   "3pListsOfBlockedHostsHeader": {
@@ -1115,6 +1115,10 @@
     "message": "mati",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Halaman disekat",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin menghalang halaman berikut memuatkan:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Tutup tetingkap ini",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Jangan beri amaran kepada saya lagi tentang laman web ini",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Lumpuhkan sekatan ketat untuk {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Kekal",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Teruskan",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Eksport ke storan awan",
@@ -1220,7 +1232,7 @@
     "description": "Label for buttons used to select all text in editor"
   },
   "toggleCosmeticFiltering": {
-    "message": "Toggle cosmetic filtering",
+    "message": "Togol penapis kosmetik",
     "description": "Label for keyboard shortcut used to toggle cosmetic filtering"
   },
   "relaxBlockingMode": {

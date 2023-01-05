@@ -22,6 +22,8 @@
 
 // For background page
 
+/* globals browser */
+
 'use strict';
 
 /******************************************************************************/
@@ -703,7 +705,7 @@ vAPI.setIcon = (( ) => {
             const path = icons[i].path;
             for ( const key in path ) {
                 if ( path.hasOwnProperty(key) === false ) { continue; }
-                imgs.push({ i: i, p: key });
+                imgs.push({ i: i, p: key, cached: false });
             }
         }
 
@@ -721,9 +723,11 @@ vAPI.setIcon = (( ) => {
             for ( const img of imgs ) {
                 if ( img.r.complete === false ) { return; }
             }
-            const ctx = document.createElement('canvas').getContext('2d');
+            const ctx = document.createElement('canvas')
+                .getContext('2d', { willReadFrequently: true });
             const iconData = [ null, null ];
             for ( const img of imgs ) {
+                if ( img.cached ) { continue; }
                 const w = img.r.naturalWidth, h = img.r.naturalHeight;
                 ctx.width = w; ctx.height = h;
                 ctx.clearRect(0, 0, w, h);
@@ -741,6 +745,7 @@ vAPI.setIcon = (( ) => {
                     return;
                 }
                 iconData[img.i][img.p] = imgData;
+                img.cached = true;
             }
             for ( let i = 0; i < iconData.length; i++ ) {
                 if ( iconData[i] ) {
@@ -789,11 +794,7 @@ vAPI.setIcon = (( ) => {
         // Insert the badge text in the title if:
         // - the platform does not support browserAction.setIcon(); OR
         // - the rendering of the badge is disabled
-        if (
-            browserAction.setTitle !== undefined && (
-                browserAction.setIcon === undefined || (parts & 0b1000) !== 0
-            )
-        ) {
+        if ( browserAction.setTitle !== undefined ) {
             browserAction.setTitle({
                 tabId: tab.id,
                 title: titleTemplate.replace(
@@ -913,6 +914,9 @@ vAPI.messaging = {
             } catch(ex) {
                 this.onPortDisconnect(port);
             }
+        }
+        if ( this.defaultHandler ) {
+            this.defaultHandler(message, null, ( ) => { });
         }
     },
 
@@ -1254,6 +1258,15 @@ vAPI.Net = class {
         return false;
     }
 };
+
+/******************************************************************************/
+/******************************************************************************/
+
+// To be defined by platform-specific code.
+
+vAPI.scriptletsInjector = (( ) => {
+    self.uBO_scriptletsInjected = true;
+}).toString();
 
 /******************************************************************************/
 /******************************************************************************/

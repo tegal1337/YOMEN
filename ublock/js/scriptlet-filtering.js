@@ -28,10 +28,7 @@ import µb from './background.js';
 import { redirectEngine } from './redirect-engine.js';
 import { sessionFirewall } from './filtering-engines.js';
 
-import {
-    StaticExtFilteringHostnameDB,
-    StaticExtFilteringSessionDB,
-} from './static-ext-filtering-db.js';
+import { StaticExtFilteringHostnameDB } from './static-ext-filtering-db.js';
 
 import {
     domainFromHostname,
@@ -46,7 +43,6 @@ const scriptletCache = new µb.MRUCache(32);
 const reEscapeScriptArg = /[\\'"]/g;
 
 const scriptletDB = new StaticExtFilteringHostnameDB(1);
-const sessionScriptletDB = new StaticExtFilteringSessionDB();
 
 let acceptedCount = 0;
 let discardedCount = 0;
@@ -88,37 +84,23 @@ const scriptletFilteringEngine = {
 const contentscriptCode = (( ) => {
     const parts = [
         '(',
-        function(hostname, scriptlets) {
+        function(injector, hostname, scriptlets) {
+            const doc = document;
             if (
-                document.location === null ||
-                hostname !== document.location.hostname
+                doc.location === null ||
+                hostname !== doc.location.hostname ||
+                typeof self.uBO_scriptletsInjected === 'boolean'
             ) {
                 return;
             }
-            const injectScriptlets = function(d) {
-                let script;
-                try {
-                    script = d.createElement('script');
-                    script.appendChild(d.createTextNode(
-                        decodeURIComponent(scriptlets))
-                    );
-                    (d.head || d.documentElement).appendChild(script);
-                } catch (ex) {
-                }
-                if ( script ) {
-                    if ( script.parentNode ) {
-                        script.parentNode.removeChild(script);
-                    }
-                    script.textContent = '';
-                }
-            };
-            injectScriptlets(document);
+            injector(doc, decodeURIComponent(scriptlets));
+            if ( typeof self.uBO_scriptletsInjected === 'boolean' ) { return 0; }
         }.toString(),
         ')(',
+            vAPI.scriptletsInjector, ', ',
             '"', 'hostname-slot', '", ',
             '"', 'scriptlets-slot', '"',
         ');',
-        '\n0;',
     ];
     return {
         parts: parts,
@@ -126,8 +108,7 @@ const contentscriptCode = (( ) => {
         scriptletsSlot: parts.indexOf('scriptlets-slot'),
         assemble: function(hostname, scriptlets) {
             this.parts[this.hostnameSlot] = hostname;
-            this.parts[this.scriptletsSlot] =
-                encodeURIComponent(scriptlets);
+            this.parts[this.scriptletsSlot] = encodeURIComponent(scriptlets);
             return this.parts.join('');
         }
     };
@@ -179,10 +160,7 @@ const lookupScriptlet = function(rawToken, reng, toInject) {
         } else {
             token = `${token}.js`;
         }
-        content = reng.resourceContentFromName(
-            token,
-            'application/javascript'
-        );
+        content = reng.resourceContentFromName(token, 'text/javascript');
         if ( !content ) { return; }
         if ( args ) {
             content = patchScriptlet(content, args);
@@ -280,13 +258,6 @@ scriptletFilteringEngine.compile = function(parser, writer) {
     }
 };
 
-scriptletFilteringEngine.compileTemporary = function(parser) {
-    return {
-        session: sessionScriptletDB,
-        selector: parser.result.compiled,
-    };
-};
-
 // 01234567890123456789
 // +js(token[, arg[, ...]])
 //     ^                  ^
@@ -309,10 +280,6 @@ scriptletFilteringEngine.fromCompiledContent = function(reader) {
     }
 };
 
-scriptletFilteringEngine.getSession = function() {
-    return sessionScriptletDB;
-};
-
 const $scriptlets = new Set();
 const $exceptions = new Set();
 const $scriptletToCodeMap = new Map();
@@ -325,9 +292,6 @@ scriptletFilteringEngine.retrieve = function(request, options = {}) {
     $scriptlets.clear();
     $exceptions.clear();
 
-    if ( sessionScriptletDB.isNotEmpty ) {
-        sessionScriptletDB.retrieve([ null, $exceptions ]);
-    }
     scriptletDB.retrieve(hostname, [ $scriptlets, $exceptions ]);
     const entity = request.entity !== ''
         ? `${hostname.slice(0, -request.domain.length)}${request.entity}`
@@ -431,13 +395,17 @@ scriptletFilteringEngine.injectNow = function(details) {
         matchAboutBlank: true,
         runAt: 'document_start',
     });
-    if ( logEntries === undefined ) { return; }
-    promise.then(results => {
-        if ( Array.isArray(results) === false || results[0] !== 0 ) { return; }
-        for ( const entry of logEntries ) {
-            logOne(entry.tabId, entry.url, entry.token);
-        }
-    });
+    if ( logEntries !== undefined ) {
+        promise.then(results => {
+            if ( Array.isArray(results) === false || results[0] !== 0 ) {
+                return;
+            }
+            for ( const entry of logEntries ) {
+                logOne(entry.tabId, entry.url, entry.token);
+            }
+        });
+    }
+    return scriptlets;
 };
 
 scriptletFilteringEngine.toSelfie = function() {

@@ -116,7 +116,7 @@
     "description": "English: Click to open the dashboard"
   },
   "popupTipZapper": {
-    "message": "Войти в режим затирания элементов",
+    "message": "Режим мгновенного временного скрытия элемента",
     "description": "Tooltip for the element-zapper icon in the popup panel"
   },
   "popupTipPicker": {
@@ -176,7 +176,7 @@
     "description": "Tooltip for the no-remote-fonts per-site switch"
   },
   "popupTipNoRemoteFonts2": {
-    "message": "Кликните для отключения блокировки удаленных шрифтов на этом сайте",
+    "message": "Нажмите для отключения блокировки сторонних шрифтов на этом сайте",
     "description": "Tooltip for the no-remote-fonts per-site switch"
   },
   "popupTipNoScripting1": {
@@ -192,7 +192,7 @@
     "description": "Caption for the no-popups per-site switch"
   },
   "popupNoLargeMedia_v2": {
-    "message": "Большие медиа элементы",
+    "message": "Большие медиа-элементы",
     "description": "Caption for the no-large-media per-site switch"
   },
   "popupNoCosmeticFiltering_v2": {
@@ -352,7 +352,7 @@
     "description": ""
   },
   "settingsAdvancedUserPrompt": {
-    "message": "Я - опытный пользователь",
+    "message": "Я — опытный пользователь",
     "description": "Checkbox to let user access advanced, technical features"
   },
   "settingsPrefetchingDisabledPrompt": {
@@ -916,7 +916,7 @@
     "description": "First paragraph of 'Filter issues' section in Support pane"
   },
   "supportS3P2": {
-    "message": "<b>Важно:</b> Избегайте использования других блокировщиков схожего назначения совместно с uBlock Origin , так как это может привести к проблемам с фильтрацией на определенных сайтах.",
+    "message": "<b>Важно:</b> Избегайте использования других блокировщиков схожего назначения совместно с uBlock Origin, так как это может привести к проблемам с фильтрацией на определенных сайтах.",
     "description": "Second paragraph of 'Filter issues' section in Support pane"
   },
   "supportS3P3": {
@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "Резервное копирование в файл...",
+    "message": "Резервное копирование в файл…",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1115,6 +1115,10 @@
     "message": "выключен",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Страница заблокирована",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin предотвратил загрузку следующей страницы:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Закрыть это окно",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Не предупреждать меня больше про этот сайт",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Отключить строгую блокировку для {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Навсегда",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Продолжить",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Экспорт в облачное хранилище",

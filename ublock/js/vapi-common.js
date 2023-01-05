@@ -22,6 +22,8 @@
 
 // For background page or non-background pages
 
+/* global browser */
+
 'use strict';
 
 /******************************************************************************/
@@ -37,7 +39,10 @@ vAPI.setTimeout = vAPI.setTimeout || self.setTimeout.bind(self);
 
 vAPI.webextFlavor = {
     major: 0,
-    soup: new Set()
+    soup: new Set(),
+    get env() {
+        return Array.from(this.soup);
+    }
 };
 
 (( ) => {
@@ -86,6 +91,9 @@ vAPI.webextFlavor = {
         soup.add('chromium')
             .add('user_stylesheet');
         flavor.major = parseInt(match[1], 10) || 0;
+        if ( flavor.major >= 105 ) {
+            soup.add('native_css_has');
+        }
     }
 
     // Don't starve potential listeners
@@ -106,18 +114,6 @@ vAPI.download = function(details) {
 /******************************************************************************/
 
 vAPI.getURL = browser.runtime.getURL;
-
-/******************************************************************************/
-
-vAPI.i18n = browser.i18n.getMessage;
-
-// http://www.w3.org/International/questions/qa-scripts#directions
-document.body.setAttribute(
-    'dir',
-    ['ar', 'he', 'fa', 'ps', 'ur'].indexOf(vAPI.i18n('@@ui_locale')) !== -1
-        ? 'rtl'
-        : 'ltr'
-);
 
 /******************************************************************************/
 

@@ -116,7 +116,7 @@
     "description": "English: Click to open the dashboard"
   },
   "popupTipZapper": {
-    "message": "Avaa elementin piilotustila",
+    "message": "Avaa elementtien piilotustila",
     "description": "Tooltip for the element-zapper icon in the popup panel"
   },
   "popupTipPicker": {
@@ -216,11 +216,11 @@
     "description": "Label to be used to hide popup panel sections"
   },
   "popupTipGlobalRules": {
-    "message": "Yleiset säännöt: sarake säännöille, joita käytetään kaikilla sivustoilla.",
+    "message": "Yleiset säännöt: Sarake säännöille, joita käytetään kaikilla sivustoilla.",
     "description": "Tooltip when hovering the top-most cell of the global-rules column."
   },
   "popupTipLocalRules": {
-    "message": "Paikalliset säännöt: sarake säännöille, joita käytetään vain nykyisellä sivustolla.\nPaikalliset säännöt ohittavat yleiset säännöt.",
+    "message": "Paikalliset säännöt: Sarake säännöille, joita käytetään vain nykyisellä sivustolla.\nPaikalliset säännöt ohittavat yleiset säännöt.",
     "description": "Tooltip when hovering the top-most cell of the local-rules column."
   },
   "popupTipSaveRules": {
@@ -320,7 +320,7 @@
     "description": "English: Hide placeholders of blocked elements"
   },
   "settingsIconBadgePrompt": {
-    "message": "Näytä estettyjen pyyntöjen määrä työkalupalkin kuvakkeessa",
+    "message": "Näytä estettyjen pyyntöjen määrä",
     "description": "English: Show the number of blocked requests on the icon"
   },
   "settingsTooltipsPrompt": {
@@ -460,7 +460,7 @@
     "description": "A checkbox in the 'Filter lists' pane"
   },
   "3pListsOfBlockedHostsHeader": {
-    "message": "Luettelo estetyistä osoitteista",
+    "message": "Lista estetyistä osoitteista",
     "description": "English: Lists of blocked hosts"
   },
   "3pApplyChanges": {
@@ -536,7 +536,7 @@
     "description": "English: Import and append"
   },
   "1pExport": {
-    "message": "Vie tiedostoon",
+    "message": "Vie tiedostoon...",
     "description": "English: Export"
   },
   "1pExportFilename": {
@@ -580,7 +580,7 @@
     "description": ""
   },
   "rulesExport": {
-    "message": "Vie tiedostoon",
+    "message": "Vie tiedostoon...",
     "description": ""
   },
   "rulesDefaultFileName": {
@@ -620,7 +620,7 @@
     "description": "English: Import and append"
   },
   "whitelistExport": {
-    "message": "Vie tiedostoon",
+    "message": "Vie tiedostoon...",
     "description": "English: Export"
   },
   "whitelistExportFilename": {
@@ -1040,7 +1040,7 @@
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
-    "message": "Varmuuskopioi tiedostoon",
+    "message": "Varmuuskopioi tiedostoon…",
     "description": "Text for button to create a backup of all settings"
   },
   "aboutBackupFilename": {
@@ -1056,7 +1056,7 @@
     "description": "English: Reset to default settings..."
   },
   "aboutRestoreDataConfirm": {
-    "message": "Kaikki asetuksesi korvataan {{time}} varmuuskopioiduilla tiedoilla, jonka jälkeen uBlock₀ käynnistyy uudelleen.\n\nKorvataanko kaikki nykyiset asetukset varmuuskopion tiedoilla?",
+    "message": "Kaikki asetuksesi korvataan {{time}} varmuuskopioiduilla tiedoilla ja uBlock₀ käynnistyy uudelleen.\n\nKorvataanko kaikki nykyiset asetukset varmuuskopioduilla tiedoilla?",
     "description": "Message asking user to confirm restore"
   },
   "aboutRestoreDataError": {
@@ -1115,6 +1115,10 @@
     "message": "ei käytössä",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Sivu estetty",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock₀ on estänyt seuraavan sivun latauksen:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Sulje tämä ikkuna",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Älä varoita tästä sivustosta uudelleen",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Älä käytä tiukkaa estoa osoitteelle {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Pysyvästi",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Jatka",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Vie pilvitallennustilaan",
@@ -1164,7 +1176,7 @@
     "description": "tooltip"
   },
   "cloudNoData": {
-    "message": "...\n...",
+    "message": "…\n…",
     "description": ""
   },
   "cloudDeviceNamePrompt": {
@@ -1248,7 +1260,7 @@
     "description": "Message used in frame placeholders"
   },
   "dummy": {
-    "message": "Tämän täytyy olla viimeinen merkintä",
+    "message": "Tämän on oltava viimeinen merkintä",
     "description": "so we dont need to deal with comma for last entry"
   }
 }

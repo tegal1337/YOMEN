@@ -1115,6 +1115,10 @@
     "message": "isključen",
     "description": "Firefox-specific: appears as 'uBlock₀ (off)'"
   },
+  "docblockedTitle": {
+    "message": "Stranica blokirana",
+    "description": "Used as a title for the document-blocked page"
+  },
   "docblockedPrompt1": {
     "message": "uBlock Origin je onemogućio učitavanje sljedeće stranice:",
     "description": "Used in the strict-blocking page"
@@ -1139,6 +1143,10 @@
     "message": "Zatvori ovaj prozor",
     "description": "English: Close this window"
   },
+  "docblockedDontWarn": {
+    "message": "Ne upozoravaj me više za ovu web stranicu",
+    "description": "Label for checkbox in document-blocked page"
+  },
   "docblockedProceed": {
     "message": "Isključi strogo blokiranje za {{hostname}}",
     "description": "English: Disable strict blocking for {{hostname}} ..."
@@ -1150,6 +1158,10 @@
   "docblockedDisablePermanent": {
     "message": "Trajno",
     "description": "English: Permanently"
+  },
+  "docblockedDisable": {
+    "message": "Nastavi",
+    "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
     "message": "Izvezi u pohranu u oblaku",

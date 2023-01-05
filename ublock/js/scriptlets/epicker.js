@@ -221,7 +221,8 @@ const backgroundImageURLFromElement = function(elem) {
 // https://github.com/gorhill/uBlock/issues/1725#issuecomment-226479197
 //   Limit returned string to 1024 characters.
 //   Also, return only URLs which will be seen by an HTTP observer.
-
+// https://github.com/uBlockOrigin/uBlock-issues/issues/2260
+//   Maybe get to the actual URL indirectly.
 const resourceURLsFromElement = function(elem) {
     const urls = [];
     const tagName = elem.localName;
@@ -231,7 +232,10 @@ const resourceURLsFromElement = function(elem) {
         if ( url !== '' ) { urls.push(url); }
         return urls;
     }
-    const s = elem[prop];
+    let s = elem[prop];
+    if ( s instanceof SVGAnimatedString ) {
+        s = s.baseVal;
+    }
     if ( typeof s === 'string' && /^https?:\/\//.test(s) ) {
         urls.push(trimFragmentFromURL(s.slice(0, 1024)));
     }
@@ -376,6 +380,7 @@ const netFilter1stSources = {
      'embed': 'src',
     'iframe': 'src',
        'img': 'src',
+     'image': 'href',
     'object': 'data',
     'source': 'src',
      'video': 'src'
@@ -671,12 +676,17 @@ const filterToDOMInterface = (( ) => {
         }
 
         // Lookup by tag names.
+        // https://github.com/uBlockOrigin/uBlock-issues/issues/2260
+        //   Maybe get to the actual URL indirectly.
         const elems = document.querySelectorAll(
             Object.keys(netFilter1stSources).join()
         );
         for ( const elem of elems ) {
             const srcProp = netFilter1stSources[elem.localName];
-            const src = elem[srcProp];
+            let src = elem[srcProp];
+            if ( src instanceof SVGAnimatedString ) {
+                src = src.baseVal;
+            }
             if (
                 typeof src === 'string' &&
                     reFilter.test(src) ||
@@ -746,9 +756,17 @@ const filterToDOMInterface = (( ) => {
         try {
             const o = JSON.parse(raw);
             elems = vAPI.domFilterer.createProceduralFilter(o).exec();
-            style = o.action === undefined || o.action[0] !== ':style'
-                ? vAPI.hideStyle
-                : o.action[1];
+            switch ( o.action && o.action[0] || '' ) {
+            case '':
+            case 'remove':
+                style = vAPI.hideStyle;
+                break;
+            case 'style':
+                style = o.action[1];
+                break;
+            default:
+                break;
+            }
         } catch(ex) {
             return;
         }
@@ -799,6 +817,7 @@ const filterToDOMInterface = (( ) => {
         const rootElem = document.documentElement;
         for ( const { elem, style } of lastResultset ) {
             if ( elem === pickerRoot ) { continue; }
+            if ( style === undefined ) { continue; }
             if ( elem === rootElem && style === vAPI.hideStyle ) { continue; }
             let styleToken = vAPI.epickerStyleProxies.get(style);
             if ( styleToken === undefined ) {
@@ -1262,6 +1281,7 @@ const pickerCSSStyle = [
     'border: 0',
     'border-radius: 0',
     'box-shadow: none',
+    'color-scheme: light dark',
     'display: block',
     'filter: none',
     'height: 100vh',
@@ -1278,17 +1298,19 @@ const pickerCSSStyle = [
     'position: fixed',
     'top: 0',
     'transform: none',
-    'visibility: visible',
+    'visibility: hidden',
     'width: 100%',
     'z-index: 2147483647',
-    // https://github.com/uBlockOrigin/uBlock-issues/issues/1408
-    'color-scheme: light',
     ''
 ];
+
 
 const pickerCSS = `
 :root > [${vAPI.sessionId}] {
     ${pickerCSSStyle.join(' !important;')}
+}
+:root > [${vAPI.sessionId}-loaded] {
+    visibility: visible !important;
 }
 :root [${vAPI.sessionId}-clickblind] {
     pointer-events: none !important;
@@ -1312,7 +1334,10 @@ vAPI.MessagingConnection.addListener(onConnectionMessage);
     if ( pickerBootArgs.zap ) {
         url.searchParams.set('zap', '1');
     }
-    pickerRoot.contentWindow.location = url.href;
+    pickerRoot.addEventListener("load", function() {
+      pickerRoot.setAttribute(`${vAPI.sessionId}-loaded`, "");
+    });
+    pickerRoot.src = url.href;
 }
 
 /******************************************************************************/
