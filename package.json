@@ -41,5 +41,6 @@
   "bugs": {
     "url": "https://github.com/tegal1337/Youtube-Auto-Commenter/issues"
   },
-  "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme"
+  "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme",
+  "devDependencies": {}
 }
