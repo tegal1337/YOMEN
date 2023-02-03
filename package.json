@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@freetube/yt-comment-scraper": "^6.2.0",
     "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.12",
     "cli-spinners": "^2.6.1",
@@ -41,6 +42,5 @@
   "bugs": {
     "url": "https://github.com/tegal1337/Youtube-Auto-Commenter/issues"
   },
-  "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme",
-  "devDependencies": {}
+  "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme"
 }

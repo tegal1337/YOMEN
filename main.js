@@ -40,6 +40,7 @@ const konfigbrowser = {
   defaultViewport: null,
   // devtools: true,
   headless: false,
+  
   executablePath: chromepath.chrome,
   args: [
     "--log-level=3", // fatal only
