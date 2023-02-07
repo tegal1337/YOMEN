@@ -1,3 +1,13 @@
+'use strict';
+/**
+ * Like videos
+ * @module likeVideos
+ * @author fdciabdul
+ * @description Like videos
+ * @date 2023-02-08
+ * @param {any} page
+ * @returns {any}
+ */
 module.exports = {
     likeVideos: async (page) => {
       try {

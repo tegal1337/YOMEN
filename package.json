@@ -12,7 +12,7 @@
     "html-to-text": "^8.1.0",
     "ip": "^1.1.8",
     "karma-chrome-launcher": "^3.1.1",
-    "puppeteer": "^10.4.0",
+    "puppeteer": "^19.6.3",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-stealth": "^2.7.8",
     "queue": "^6.0.2",
@@ -46,6 +46,7 @@
   "devDependencies": {
     "eslint": "^8.33.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.27.5"
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-unused-imports": "^2.0.0"
   }
 }

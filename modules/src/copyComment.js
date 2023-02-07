@@ -1,4 +1,4 @@
-const location = require("./getLocation");
+'use strict';
 module.exports = {
   copyComment: async (pages, spinners, config) => {
     let count = 1;
@@ -30,7 +30,7 @@ module.exports = {
     var komenan =
       totalComments[Math.floor(Math.random() * totalComments.length)];
     spinners.update("comment", {
-      text: "but we will use this one \n" + komenan,
+      text: "but we will use this one " + komenan,
       color: "blue",
     });
   
@@ -39,6 +39,10 @@ module.exports = {
     await pages.keyboard.press("Enter");
     await pages.evaluate(() => {
       document.querySelector("#submit-button").click();
+    });
+    spinners.update("comment", {
+      text: "Success " + komenan,
+      color: "blue",
     });
   },
 };
