@@ -314,11 +314,9 @@ async function startApp(config, browserconfig)
          catch (e)
          {
             await pages.close();
-            console.log(
-               `Something Wrong maybe this is Short videos , live stream , or broken error : ${
-            e}`,
+      
                Logger.log('./logs/errorCommenting.log', config.usernamegoogle, tweet, 'failed', e)
-            );
+          
          }
          await wait(config.delay);
       }
