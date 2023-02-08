@@ -1,0 +1,5 @@
+[3:42:43 AM] | User : test | Link : test | Status : test
+ | Error : null
+ | Error : null
+[3:49:00 AM] | User : test | Link : test | Status : test
+[3:49:20 AM] | User : test | Link : test | Status : test | Error : askdjaskjd
