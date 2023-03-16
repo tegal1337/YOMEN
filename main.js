@@ -23,9 +23,11 @@ const
    autoscroll,
    likeVideos,
    Logger,
+   aiCommented,
    Banner
 } = require('./modules');
 const config = require('./config');
+const { title } = require('process');
 const spinners = new Spinners(cliSpinners.star.frames,
 {
    text: 'Loading',
@@ -194,7 +196,10 @@ async function startApp(config, browserconfig)
       //collecting links
       let linked = await Promise.all((await page.$$('#video-title')).map(async a =>
       {
-         return await (await a.getProperty('href')).jsonValue();
+         return {
+            url :await (await a.getProperty('href')).jsonValue(),
+            title : await (await a.getProperty('title')).jsonValue()
+         };
       }));
 
       let hrefs = await Promise.all((await page.$$('#details > a')).map(async a =>
@@ -207,7 +212,7 @@ async function startApp(config, browserconfig)
          linked.push(hrefs);
       }
 
-      const link = linked.filter((el) => el != null);
+      const link = linked.filter((el) => el.url != null);
 
       spinners.succeed('hasil',
       {
@@ -231,7 +236,8 @@ async function startApp(config, browserconfig)
             text: 'Now commenting in the video..',
             color: 'yellow',
          });
-         const tweet = link[i];
+         const tweet = link[i].url;
+         const title = link[i].title;
          const pages = await browser.newPage();
          await pages.setViewport(
          {
@@ -293,13 +299,17 @@ async function startApp(config, browserconfig)
                   color: 'yellow',
                });
 
-               if (config.copycomment == true)
+               if (config.copycomment == true || config.ai == false) 
                {
                   await copycommnet.copyComment(pages, spinners, config);
+               }else if(config.ai == true){
+                  await aiCommented.aiCommented(title,pages , spinners , config)
                }
-               else
+               else if(config.copycomment == false)
                {
                   await manualComment.manualComment(pages, spinners, config);
+               }else{
+                  console.log(" Check Your Configuration")
                }
                await pages.waitForTimeout(config.delay * 1000);
                await pages.close();

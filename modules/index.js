@@ -10,5 +10,5 @@ module.exports = {
     randomUserAgent : require("./src/userAgent"),
     Logger : require("./src/Logger"),
     Banner : require("./src/bannerMain"),
-    
+    aiCommented : require("./src/aiCommented"),
 }
