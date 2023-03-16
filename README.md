@@ -119,7 +119,7 @@ you can set to /usr/bin/chromium
 or
 
 - support by donating 
-( i won't use your money , i will give to charity to kitabisa.com )
+( i won't use your money , i will give to charity to kitabisa.com  , or you dont have to send any money to me , do it by yourself .. it also supporting me :) )
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/fdciabdul)
 
