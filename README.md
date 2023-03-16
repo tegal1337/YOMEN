@@ -113,7 +113,13 @@ you can set to /usr/bin/chromium
 | multiaccount |  Multiple account , loop based and not multi threaded |
 | ai | Auto commenting with AI|
 
-## Donate
+## Support this project by 
+
+- Give me an idea to create something amazing with this 
+or
+
+- support by donating 
+( i won't use your money , i will give to charity to kitabisa.com )
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/fdciabdul)
 
