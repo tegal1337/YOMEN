@@ -49,9 +49,11 @@ module.exports = {
  Feature  | Status |
 | -------------:|------------- |
 | Random Copy Comment | Ok|
+| Manual Comment | Ok|
+| AI Comment (GPT BASED) | Ok|
 | Comment On Trending | Ok |
 | Comment based on Keyword | Ok |
-| Multi Account |  Ok|
+| Multi Account |  Need Fixed (help me)|
 
 ## Requirements
 
@@ -109,11 +111,11 @@ you can set to /usr/bin/chromium
 | delaycomment |  delay commenting / seconds |
 | trending | Comment based on trending videos on your location|
 | multiaccount |  Multiple account , loop based and not multi threaded |
-
+| ai | Auto commenting with AI|
 
 ## Donate
 
-???
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/fdciabdul)
 
 
 
