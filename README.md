@@ -9,7 +9,7 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
     
 ## Quick Links
 
-* [Demo](https://www.youtube.com/watch?v=C7AOauxguSc)
+* [Demo]([https://www.youtube.com/watch?v=C7AOauxguSc](https://www.youtube.com/watch?v=rvoLHlPahhY&t=128s))
 * [Installation](#run--installation)
 * [Feature](#feature)
 * [Configuration](#configuration)
@@ -17,7 +17,7 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
 
 
 ## Demo
- <a href="https://www.youtube.com/watch?v=C7AOauxguSc"> <image src="https://user-images.githubusercontent.com/31664438/177520285-2cecfe81-0ae4-477a-a5e6-908a05adef27.gif" align="center" width="100%" /> </a>
+ <a href="https://www.youtube.com/watch?v=rvoLHlPahhY&t=128s"> <image src="https://user-images.githubusercontent.com/31664438/177520285-2cecfe81-0ae4-477a-a5e6-908a05adef27.gif" align="center" width="100%" /> </a>
 
 ```bash
 $ see this DEMO in here > https://www.youtube.com/watch?v=C7AOauxguSc
