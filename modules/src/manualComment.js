@@ -12,13 +12,16 @@
  */
 module.exports = {
     manualComment: async (pages , spinners , config) => {
+        await pages.evaluate(() => {
+            window.scrollBy(0, window.innerHeight * 2);
+          });
         var komenan = config.comments[Math.floor(Math.random() * config.comments.length)]
         spinners.update('comment', { text: "we will use this one \n" + komenan, color: 'blue' });
-        await pages.keyboard.type(komenan, { delay: 20 });
+        await pages.type("#contenteditable-root",komenan, { delay: 20 });
         await pages.waitForTimeout(100);
         await pages.keyboard.press("Enter");
         await pages.evaluate(() => {
-            document.querySelector("#submit-button").click();
+          document.querySelector("#submit-button").click();
         });
     }
 }

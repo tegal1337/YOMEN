@@ -13,7 +13,7 @@ const
 const cliSpinners = require('cli-spinners');
 const Spinners = require('spinnies');
 const fs = require('fs');
-
+const selector = require("./modules/constant/selector")
 const
 {
    randomUserAgent,
@@ -99,18 +99,16 @@ async function startApp(config, browserconfig)
    await page.setUserAgent(randomUserAgent.UA());
    await page.goto(
       'https://accounts.google.com/signin/v2/identifier?service=youtube',
-   );
+      {waituntil : "domcontentloaded"});
    spinners.add('user',
    {
       text: 'Login..',
       color: 'green'
    });
-   await page.waitForTimeout(2000);
+ 
    try
    {
-      const checklogin = await page.$(
-         '#yDmH0d > c-wiz > div > div:nth-child(2) > div > c-wiz > c-wiz > div > div.s7iwrf.gMPiLc.Kdcijb > div > div > header > h1',
-      );
+      const checklogin = await page.$(selector.checkLogin);
       await page.evaluate((el) => el.textContent, checklogin);
       spinners.succeed('user',
       {
@@ -120,20 +118,22 @@ async function startApp(config, browserconfig)
    }
    catch
    {
-      await page.waitForSelector('#identifierId');
-      await page.type('#identifierId', config.usernamegoogle,
+      await page.waitForSelector(selector.username);
+      await page.type(selector.username, config.usernamegoogle,
+      {
+         delay: 200
+      });
+      await page.keyboard.press('Enter');
+      await page.waitForNavigation({waituntil : "domcontentloaded"});
+      await page.waitForSelector(selector.showpass);
+     // await page.click(selector.showpass , {delay :1000});
+      await wait(5);
+      await page.type(selector.password, config.passwordgoogle,
       {
          delay: 400
       });
-      await page.waitForTimeout(1000);
       await page.keyboard.press('Enter');
-      await page.waitForTimeout(5000);
-      await page.type('input', config.passwordgoogle,
-      {
-         delay: 400
-      });
-      await page.keyboard.press('Enter');
-      await page.waitForTimeout(10000);
+      await page.waitForNavigation({waituntil : "domcontentloaded"});
    }
    console.log('=========== Start Commenting ==============');
 
@@ -143,7 +143,11 @@ async function startApp(config, browserconfig)
    }
    catch (error)
    {
-      console.log('thanks');
+      spinners.add('sub',
+      {
+         text: 'Thank you <3',
+         color: 'green',
+      });
    }
 
    spinners.add('first-spinner',
@@ -163,17 +167,14 @@ async function startApp(config, browserconfig)
          await page.goto(
             `https://www.youtube.com/results?search_query=${keyword[i]}`,
          );
-         const element = await page.$(
-            '.ytd-section-list-renderer > #contents > .style-scope:nth-child(1)',
+         const element = await page.$(selector.shortvideos,
          );
          if (element)
          {
             await page.evaluate(() =>
             {
                document
-                  .querySelector(
-                     '.ytd-section-list-renderer > #contents > .style-scope:nth-child(1)',
-                  )
+                  .querySelector(selector.shortvideos)
                   .remove();
             });
          }
@@ -194,7 +195,7 @@ async function startApp(config, browserconfig)
       });
 
       //collecting links
-      let linked = await Promise.all((await page.$$('#video-title')).map(async a =>
+      let linked = await Promise.all((await page.$$(selector.videoTitleinSearch)).map(async a =>
       {
          return {
             url :await (await a.getProperty('href')).jsonValue(),
@@ -202,7 +203,7 @@ async function startApp(config, browserconfig)
          };
       }));
 
-      let hrefs = await Promise.all((await page.$$('#details > a')).map(async a =>
+      let hrefs = await Promise.all((await page.$$(selector.shortsTitleinSearch)).map(async a =>
       {
          return await (await a.getProperty('href')).jsonValue();
       }));
@@ -274,7 +275,7 @@ async function startApp(config, browserconfig)
 
             try
             {
-               await pages.waitForSelector('#message > span',
+               await pages.waitForSelector(selector.catchErrorInComment,
                {
                   timeout: 4000
                });
@@ -284,7 +285,7 @@ async function startApp(config, browserconfig)
             }
             catch
             {
-               await pages.waitForSelector('#simplebox-placeholder',
+               await pages.waitForSelector(selector.inputComment,
                {
                   timeout: 4000,
                });
@@ -299,13 +300,13 @@ async function startApp(config, browserconfig)
                   color: 'yellow',
                });
 
-               if (config.copycomment == true || config.ai == false) 
+               if (config.copycomment|| config.ai) 
                {
                   await copycommnet.copyComment(pages, spinners, config);
-               }else if(config.ai == true){
+               }else if(config.ai){
                   await aiCommented.aiCommented(title,pages , spinners , config)
                }
-               else if(config.copycomment == false)
+               else if(!config.copycomment || !config.ai)
                {
                   await manualComment.manualComment(pages, spinners, config);
                }else{
