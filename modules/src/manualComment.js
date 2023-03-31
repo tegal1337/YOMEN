@@ -17,6 +17,7 @@ module.exports = {
           });
         var komenan = config.comments[Math.floor(Math.random() * config.comments.length)]
         spinners.update('comment', { text: "we will use this one \n" + komenan, color: 'blue' });
+        await pages.waitForSelector("#contenteditable-root");
         await pages.type("#contenteditable-root",komenan, { delay: 20 });
         await pages.waitForTimeout(100);
         await pages.keyboard.press("Enter");

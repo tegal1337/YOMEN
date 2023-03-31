@@ -13,7 +13,8 @@ const
 const cliSpinners = require('cli-spinners');
 const Spinners = require('spinnies');
 const fs = require('fs');
-const selector = require("./modules/constant/selector")
+const selector = require("./modules/constant/selector");
+const {Config} = require("./modules/constant/BrowserConfig")
 const
 {
    randomUserAgent,
@@ -27,7 +28,6 @@ const
    Banner
 } = require('./modules');
 const config = require('./config');
-const { title } = require('process');
 const spinners = new Spinners(cliSpinners.star.frames,
 {
    text: 'Loading',
@@ -44,43 +44,8 @@ const paths = `${process.cwd()}/ublock`;
 StealthPlugin.enabledEvasions.delete('iframe.contentWindow');
 ['chrome.runtime', 'navigator.languages'].forEach((a) => StealthPlugin.enabledEvasions.delete(a));
 
-
-const konfigbrowser = {
-   defaultViewport: null,
-   // devtools: true,
-   headless: false,
-
-   executablePath: executablePath('chrome'),
-   args: [
-      '--log-level=3', // fatal only
-      '--no-default-browser-check',
-      '--disable-infobars',
-      '--disable-web-security',
-      '--disable-site-isolation-trials',
-      '--no-experiments',
-      '--ignore-gpu-blacklist',
-      '--ignore-certificate-errors',
-      '--ignore-certificate-errors-spki-list',
-      '--mute-audio',
-      '--disable-extensions',
-      '--no-sandbox',
-
-      '--no-first-run',
-      '--no-zygote',
-      `--disable-extensions-except=${paths}`,
-      `--load-extension=${paths}`,
-   ],
-
-   userDataDir: config.userdatadir,
-};
 console.log(Banner.show);
-/**
- * Starting Apps
- * @date 2023-02-08
- * @param {any} config
- * @param {any} browserconfig
- * @returns {any}
- */
+
 async function startApp(config, browserconfig)
 {
    const keyword = config.keywords;
@@ -346,7 +311,7 @@ async function startApp(config, browserconfig)
    await browser.close();
 }
 
-startApp(config, konfigbrowser);
+startApp(config, Config(paths,config,executablePath("chrome")));
 
 function readLog()
 {

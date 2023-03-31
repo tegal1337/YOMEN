@@ -8,6 +8,4 @@ module.exports = {
     shortsTitleinSearch : "#details > a",
     catchErrorInComment : "#message > span",
     inputComment : "#simplebox-placeholder",
-
-
 }
