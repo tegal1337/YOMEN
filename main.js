@@ -265,13 +265,13 @@ async function startApp(config, browserconfig)
                   color: 'yellow',
                });
 
-               if (config.copycomment|| config.ai) 
+               if (config.copycomment && config.ai == false) 
                {
                   await copycommnet.copyComment(pages, spinners, config);
                }else if(config.ai){
-                  await aiCommented.aiCommented(title,pages , spinners , config)
+                  await aiCommented.createComments(pages , spinners ,title, config)
                }
-               else if(!config.copycomment || !config.ai)
+               else if(!config.copycomment && !config.ai)
                {
                   await manualComment.manualComment(pages, spinners, config);
                }else{

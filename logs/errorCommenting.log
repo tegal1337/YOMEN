@@ -10,3 +10,4 @@
     at pptr://__puppeteer_evaluation_script__:3:42
 [5:43:34 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=4pLNKvC35tc | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
     at pptr://__puppeteer_evaluation_script__:3:42
+[8:55:07 PM] | User: usernamegoogle | Link: https://www.youtube.com/watch?v=YudHcBIxlYw | Status: failed | Error: TypeError: aiCommented.aiCommented is not a function

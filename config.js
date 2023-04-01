@@ -7,6 +7,6 @@ module.exports = {
   trending: true,//false
   copycomment:false, // false if you want use comment above , i mean from array
   userdatadir : "fdciabdul",
-  ai : false, // true if you want to use OPEN AI (CHAT-GPT) auto comment
-  apiKey : "YOUR OPENAI API KEY",
+  ai : true, // true if you want to use OPEN AI (CHAT-GPT) auto comment
+  apiKey : "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",
 };
