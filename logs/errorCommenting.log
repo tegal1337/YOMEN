@@ -1,13 +1,1 @@
-[5:39:31 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=UY4ENgeMtY4 | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[5:39:45 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=4pLNKvC35tc | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[5:39:55 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=_90myPExB_w | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[5:41:34 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=UY4ENgeMtY4&t=6s | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[5:43:25 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=UY4ENgeMtY4&t=12s | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[5:43:34 AM] | User: chanmenme2 | Link: https://www.youtube.com/watch?v=4pLNKvC35tc | Status: failed | Error: Error: Evaluation failed: ReferenceError: selector is not defined
-    at pptr://__puppeteer_evaluation_script__:3:42
-[8:55:07 PM] | User: usernamegoogle | Link: https://www.youtube.com/watch?v=YudHcBIxlYw | Status: failed | Error: TypeError: aiCommented.aiCommented is not a function
+
