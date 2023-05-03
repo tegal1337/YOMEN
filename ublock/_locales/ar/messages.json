@@ -275,13 +275,13 @@
     "message": "نسخة",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "أكِّد على الصفوف التي تحتوي على نصوص برمجية من جهات خارجية",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "script",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "قم بتأكيد الصفوف التي تحتوي على إطارات من جهات خارجية",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "frame",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "إنشاء",
@@ -1215,6 +1215,10 @@
     "message": "السماح مؤقتا لعناصر الوسائط كبيرة",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "عرض المصدر…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "ادخل اختصار",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "اضغط للتحميل",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "Errors: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "Could not filter properly at browser launch.\nReload the page to ensure proper filtering.",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "يجب أن يكون هذا الإدخال آخر واحد",

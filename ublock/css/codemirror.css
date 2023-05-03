@@ -23,8 +23,15 @@
     }
 .CodeMirror-foldmarker {
     color: var(--cm-foldmarker-ink);
-    font-size: large;
-    text-shadow: none;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-weight: bold;
+    }
+.CodeMirror-foldgutter-folded::after {
+    content: '\25B6';
+    }
+.CodeMirror-foldgutter-open::after {
+    content: '\25BC';
     }
 .CodeMirror-gutters {
     background-color: var(--cm-gutter-surface);
@@ -68,59 +75,63 @@
     word-break: break-all;
     }
 
-.cm-s-default .cm-comment {
+.cm-theme-override .cm-s-default .cm-comment {
     color: var(--sf-comment-ink);
     }
-.cm-s-default .cm-def {
+.cm-theme-override .cm-s-default .cm-def {
     color: var(--sf-def-ink);
     }
-.cm-s-default .cm-directive {
+.cm-theme-override .cm-s-default .cm-directive {
     color: var(--sf-directive-ink);
     font-weight: bold;
     }
-.cm-s-default .cm-error {
+.cm-theme-override .cm-s-default .cm-error {
     color: inherit;
     }
-.cm-s-default .cm-error,
+.cm-theme-override .cm-s-default .cm-error,
 .CodeMirror-linebackground.error {
     background-color: var(--sf-error-surface);
-    text-decoration: underline var(--sf-error-ink);
-    text-underline-position: under;
+    text-decoration: var(--sf-error-ink) dashed underline;
     }
-.cm-s-default .cm-link {
+.cm-theme-override .cm-s-default .cm-link {
     text-decoration: none;
     }
-.cm-s-default .cm-link:hover {
+.cm-theme-override .cm-s-default .cm-link:hover {
     color: var(--link-ink);
     }
-.cm-s-default .cm-keyword {
+.cm-theme-override .cm-s-default .cm-keyword {
     color: var(--sf-keyword-ink);
     }
-.cm-s-default .cm-negative {
+.cm-theme-override .cm-s-default .cm-negative {
     color: var(--cm-negative);
     }
-.cm-s-default .cm-positive {
+.cm-theme-override .cm-s-default .cm-positive {
     color: var(--cm-positive);
     }
-.cm-s-default .cm-notice {
-    text-underline-position: under;
+.cm-theme-override .cm-s-default .cm-notice {
     text-decoration-color: var(--sf-notice-ink);
     text-decoration-style: solid;
     text-decoration-line: underline;
     }
-.cm-s-default .cm-tag {
+.cm-theme-override .cm-s-default .cm-unicode {
+    text-decoration-color: var(--sf-unicode-ink);
+    text-decoration-style: dashed;
+    text-decoration-line: underline;
+    }
+.cm-theme-override .cm-s-default .cm-tag {
     color: var(--sf-tag-ink);
     }
-.cm-s-default .cm-value { color: var(--sf-value-ink); }
-.cm-s-default .cm-variable {
+.cm-theme-override .cm-s-default .cm-value {
+    color: var(--sf-value-ink);
+    }
+.cm-theme-override .cm-s-default .cm-variable {
     color: var(--sf-variable-ink);
     }
-.cm-s-default .cm-warning {
+.cm-theme-override .cm-s-default .cm-warning {
     background-color: var(--sf-warning-surface);
     text-decoration: underline var(--sf-warning-ink);
-    text-underline-position: under;
     }
-.cm-s-default .cm-readonly {
+.cm-theme-override .cm-s-default .cm-readonly {
     color: var(--sf-readonly-ink);
     }
 
@@ -156,6 +167,13 @@
       -webkit-user-select: none;
     z-index: 1000;
     }
+.cm-search-widget > * {
+    flex-grow: 1;
+    }
+.cm-search-widget > :last-child {
+    justify-content: flex-end;
+    }
+
 .cm-search-widget-input {
     display: inline-flex;
     flex-grow: 1;
@@ -177,23 +195,41 @@
     align-items: center;
     display: inline-flex;
     flex-grow: 0;
-    font-size: 95%;
+    font-size: var(--font-size-smaller);
     min-width: 6em;
     visibility: hidden;
     }
-.cm-search-widget[data-query] .cm-search-widget-count:not(:empty) {
+.cm-search-widget[data-query] .cm-search-widget-count {
     visibility: visible;
+    }
+.cm-search-widget[data-query] .cm-search-widget-count:empty {
+    visibility: hidden;
     }
 .cm-search-widget .cm-search-widget-button:hover {
     color: #000;
     }
 .cm-search-widget .sourceURL[href=""] {
-    display: none;
+    visibility: hidden;
     }
+
+.cm-linter-widget {
+    align-items: center;
+    display: none;
+    flex-grow: 1;
+    }
+.cm-linter-widget:not([data-lint="0"]) {
+    display: inline-flex;
+    }
+.cm-linter-widget .cm-linter-widget-count {
+    color: var(--accent-surface-1);
+        fill: var(--accent-surface-1);
+    font-size: var(--font-size-smaller);
+    }
+
 .cm-searching.cm-overlay {
-    background-color: var(--cm-searching-surface);
+    background-color: var(--cm-searching-surface) !important;
     border: 0;
-    color: var(--cm-searching-ink);
+    color: var(--cm-searching-ink) !important;
     }
 
 .CodeMirror-merge {
@@ -238,4 +274,48 @@
  * */
 .CodeMirror-activeline-background {
     background-color: var(--cm-active-line);
+    }
+
+.CodeMirror-lintmarker {
+    height: calc(var(--font-size) - 2px);
+    margin-top: 1px;
+    position: relative;
+    }
+.CodeMirror-lintmarker > * {
+    position: absolute;
+    }
+.CodeMirror-lintmarker[data-lint="error"] {
+    background-color: var(--sf-error-ink);
+    }
+.CodeMirror-lintmarker[data-lint="error"] .msg {
+    display: none;
+    }
+.CodeMirror-lintmarker[data-lint="error"] .msg {
+    background-color: var(--surface-0);
+    border: 1px solid var(--sf-error-ink);
+    color: var(--ink-1);
+    filter: drop-shadow(2px 2px 4px #0008);
+    left: 100%;
+    padding: var(--default-gap-xsmall);
+    top: -2px;
+    white-space: pre;
+    }
+.CodeMirror-lintmarker svg {
+    height: 70%;
+    left: 15%;
+    top: 15%;
+    width: 70%;
+    }
+.CodeMirror-lintmarker[data-fold="start"] {
+    fill: var(--cm-foldmarker-ink);
+    }
+.CodeMirror-lintmarker[data-fold="start"].folded svg {
+    transform: rotate(-90deg);
+    }
+.CodeMirror-lintmarker[data-fold="end"] {
+    fill: var(--border-2);
+    }
+.CodeMirror-lintmarker[data-lint="error"]:hover > span,
+.CodeMirror-lintmarker[data-lint="error"] > span:hover {
+    display: initial;
     }

@@ -43,7 +43,7 @@ import { denseBase64 } from './base64-custom.js';
 import { dnrRulesetFromRawLists } from './static-dnr-filtering.js';
 import { i18n$ } from './i18n.js';
 import { redirectEngine } from './redirect-engine.js';
-import { StaticFilteringParser } from './static-filtering-parser.js';
+import * as sfp from './static-filtering-parser.js';
 
 import {
     permanentFirewall,
@@ -312,6 +312,10 @@ const onMessage = function(request, sender, callback) {
         µb.openNewTab(request.details);
         break;
 
+    case 'readyToFilter':
+        response = µb.readyToFilter;
+        break;
+
     // https://github.com/uBlockOrigin/uBlock-issues/issues/1954
     //   In case of document-blocked page, navigate to blocked URL instead
     //   of forcing a reload.
@@ -492,9 +496,10 @@ const popupDataFromTabId = function(tabId, tabTitle) {
         popupPanelDisabledSections: µbhs.popupPanelDisabledSections,
         popupPanelLockedSections: µbhs.popupPanelLockedSections,
         popupPanelHeightMode: µbhs.popupPanelHeightMode,
-        tabId: tabId,
-        tabTitle: tabTitle,
-        tooltipsDisabled: µbus.tooltipsDisabled
+        tabId,
+        tabTitle,
+        tooltipsDisabled: µbus.tooltipsDisabled,
+        hasUnprocessedRequest: vAPI.net && vAPI.net.hasUnprocessedRequest(tabId),
     };
 
     if ( µbhs.uiPopupConfig !== 'unset' ) {
@@ -605,6 +610,36 @@ const onMessage = function(request, sender, callback) {
         });
         return;
 
+    // https://github.com/gorhill/uBlock/commit/6efd8eb#commitcomment-107523558
+    //   Important: for whatever reason, not using `document_start` causes the
+    //   Promise returned by `tabs.executeScript()` to resolve only when the
+    //   associated tab is closed.
+    case 'launchReporter': {
+        const pageStore = µb.pageStoreFromTabId(request.tabId);
+        if ( pageStore === null ) { break; }
+        if ( vAPI.net.hasUnprocessedRequest(request.tabId) ) {
+            request.popupPanel.hasUnprocessedRequest = true;
+        }
+        vAPI.tabs.executeScript(request.tabId, {
+            allFrames: true,
+            file: '/js/scriptlets/cosmetic-report.js',
+            matchAboutBlank: true,
+            runAt: 'document_start',
+        }).then(results => {
+            const filters = results.reduce((a, v) => {
+                if ( Array.isArray(v) ) { a.push(...v); }
+                return a;
+            }, []);
+            if ( filters.length !== 0 ) {
+                request.popupPanel.cosmetic = filters;
+            }
+            const supportURL = new URL(vAPI.getURL('support.html'));
+            supportURL.searchParams.set('pageURL', request.pageURL);
+            supportURL.searchParams.set('popupPanel', JSON.stringify(request.popupPanel));
+            µb.openNewTab({ url: supportURL.href, select: true, index: -1 });
+        });
+        return;
+    }
     default:
         break;
     }
@@ -613,19 +648,15 @@ const onMessage = function(request, sender, callback) {
     let response;
 
     switch ( request.what ) {
+    case 'dismissUnprocessedRequest':
+        vAPI.net.removeUnprocessedRequest(request.tabId);
+        µb.updateToolbarIcon(request.tabId, 0b110);
+        break;
+
     case 'hasPopupContentChanged': {
         const pageStore = µb.pageStoreFromTabId(request.tabId);
         const lastModified = pageStore ? pageStore.contentLastModified : 0;
         response = lastModified !== request.contentLastModified;
-        break;
-    }
-    case 'launchReporter': {
-        const pageStore = µb.pageStoreFromTabId(request.tabId);
-        if ( pageStore === null ) { break; }
-        const supportURL = new URL(vAPI.getURL('support.html'));
-        supportURL.searchParams.set('pageURL', request.pageURL);
-        supportURL.searchParams.set('popupPanel', request.popupPanel);
-        µb.openNewTab({ url: supportURL.href, select: true, index: -1 });
         break;
     }
     case 'revertFirewallRules':
@@ -1515,10 +1546,11 @@ const onMessage = function(request, sender, callback) {
         if ( (request.hintUpdateToken || 0) === 0 ) {
             response.redirectResources = redirectEngine.getResourceDetails();
             response.preparseDirectiveTokens =
-                StaticFilteringParser.utils.preparser.getTokens(vAPI.webextFlavor.env);
+                sfp.utils.preparser.getTokens(vAPI.webextFlavor.env);
             response.preparseDirectiveHints =
-                StaticFilteringParser.utils.preparser.getHints();
+                sfp.utils.preparser.getHints();
             response.expertMode = µb.hiddenSettings.filterAuthorMode;
+            response.filterOnHeaders = µb.hiddenSettings.filterOnHeaders;
         }
         if ( request.hintUpdateToken !== µb.pageStoresToken ) {
             response.originHints = getOriginHints();
@@ -1604,7 +1636,6 @@ const getLoggerData = async function(details, activeTabId, callback) {
         activeTabId,
         colorBlind: µb.userSettings.colorBlindFriendly,
         entries: logger.readAll(details.ownerId),
-        filterAuthorMode: µb.hiddenSettings.filterAuthorMode,
         tabIdsToken: µb.pageStoresToken,
         tooltips: µb.userSettings.tooltipsDisabled === false
     };

@@ -225,10 +225,12 @@ const FilterContainer = function() {
     this.reSimpleHighGeneric = /^(?:[a-z]*\[[^\]]+\]|\S+)$/;
 
     this.selectorCache = new Map();
-    this.selectorCachePruneDelay = 10 * 60 * 1000; // 10 minutes
+    this.selectorCachePruneDelay = 10; // 10 minutes
     this.selectorCacheCountMin = 40;
     this.selectorCacheCountMax = 50;
-    this.selectorCacheTimer = null;
+    this.selectorCacheTimer = vAPI.defer.create(( ) => {
+        this.pruneSelectorCacheAsync();
+    });
 
     // specific filters
     this.specificFilters = new StaticExtFilteringHostnameDB(2);
@@ -274,10 +276,7 @@ FilterContainer.prototype.reset = function() {
     this.duplicateBuster = new Set();
 
     this.selectorCache.clear();
-    if ( this.selectorCacheTimer !== null ) {
-        clearTimeout(this.selectorCacheTimer);
-        this.selectorCacheTimer = null;
-    }
+    this.selectorCacheTimer.off();
 
     // hostname, entity-based filters
     this.specificFilters.clear();
@@ -322,7 +321,7 @@ FilterContainer.prototype.compile = function(parser, writer) {
     //   Negated hostname means the filter applies to all non-negated hostnames
     //   of same filter OR globally if there is no non-negated hostnames.
     let applyGlobally = true;
-    for ( const { hn, not, bad } of parser.extOptions() ) {
+    for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
         if ( bad ) { continue; }
         if ( not === false ) {
             applyGlobally = false;
@@ -604,18 +603,6 @@ FilterContainer.prototype.fromSelfie = function(selfie) {
 
 /******************************************************************************/
 
-FilterContainer.prototype.triggerSelectorCachePruner = function() {
-    // Of interest: http://fitzgeraldnick.com/weblog/40/
-    // http://googlecode.blogspot.ca/2009/07/gmail-for-mobile-html5-series-using.html
-    if ( this.selectorCacheTimer !== null ) { return; }
-    this.selectorCacheTimer = vAPI.setTimeout(
-        ( ) => { this.pruneSelectorCacheAsync(); },
-        this.selectorCachePruneDelay
-    );
-};
-
-/******************************************************************************/
-
 FilterContainer.prototype.addToSelectorCache = function(details) {
     const hostname = details.hostname;
     if ( typeof hostname !== 'string' || hostname === '' ) { return; }
@@ -626,7 +613,7 @@ FilterContainer.prototype.addToSelectorCache = function(details) {
         entry = SelectorCacheEntry.factory();
         this.selectorCache.set(hostname, entry);
         if ( this.selectorCache.size > this.selectorCacheCountMax ) {
-            this.triggerSelectorCachePruner();
+            this.selectorCacheTimer.on({ min: this.selectorCachePruneDelay });
         }
     }
     entry.add(details);
@@ -658,7 +645,6 @@ FilterContainer.prototype.removeFromSelectorCache = function(
 /******************************************************************************/
 
 FilterContainer.prototype.pruneSelectorCacheAsync = function() {
-    this.selectorCacheTimer = null;
     if ( this.selectorCache.size <= this.selectorCacheCountMax ) { return; }
     const cache = this.selectorCache;
     const hostnames = Array.from(cache.keys())
@@ -682,8 +668,7 @@ FilterContainer.prototype.disableSurveyor = function(details) {
 
 /******************************************************************************/
 
-FilterContainer.prototype.cssRuleFromProcedural = function(json) {
-    const pfilter = JSON.parse(json);
+FilterContainer.prototype.cssRuleFromProcedural = function(pfilter) {
     if ( pfilter.cssable !== true ) { return; }
     const { tasks, action } = pfilter;
     let mq;
@@ -811,41 +796,41 @@ FilterContainer.prototype.retrieveSpecificSelectors = function(
         }
 
         // Retrieve filters with a non-empty hostname
+        const retrieveSets = [ specificSet, exceptionSet, proceduralSet, exceptionSet ];
+        const discardSets = [ dummySet, exceptionSet ];
         this.specificFilters.retrieve(
             hostname,
-            options.noSpecificCosmeticFiltering !== true
-                ? [ specificSet, exceptionSet, proceduralSet, exceptionSet ]
-                : [ dummySet, exceptionSet ],
+            options.noSpecificCosmeticFiltering ? discardSets : retrieveSets,
             1
         );
-        // Retrieve filters with an empty hostname
+        // Retrieve filters with a regex-based hostname value
         this.specificFilters.retrieve(
             hostname,
-            options.noGenericCosmeticFiltering !== true
-                ? [ specificSet, exceptionSet, proceduralSet, exceptionSet ]
-                : [ dummySet, exceptionSet ],
-            2
+            options.noSpecificCosmeticFiltering ? discardSets : retrieveSets,
+            3
         );
-        // Retrieve filters with a non-empty entity
+        // Retrieve filters with a entity-based hostname value
         if ( request.entity !== '' ) {
             this.specificFilters.retrieve(
                 `${hostname.slice(0, -request.domain.length)}${request.entity}`,
-                options.noSpecificCosmeticFiltering !== true
-                    ? [ specificSet, exceptionSet, proceduralSet, exceptionSet ]
-                    : [ dummySet, exceptionSet ],
+                options.noSpecificCosmeticFiltering ? discardSets : retrieveSets,
                 1
             );
         }
+        // Retrieve filters with an empty hostname
+        this.specificFilters.retrieve(
+            hostname,
+            options.noGenericCosmeticFiltering ? discardSets : retrieveSets,
+            2
+        );
 
+        // Apply exceptions to specific filterset
         if ( exceptionSet.size !== 0 ) {
             out.exceptionFilters = Array.from(exceptionSet);
-            for ( const exception of exceptionSet ) {
-                if (
-                    specificSet.delete(exception) ||
-                    proceduralSet.delete(exception)
-                ) {
-                    out.exceptedFilters.push(exception);
-                }
+            for ( const selector of specificSet ) {
+                if ( exceptionSet.has(selector) === false ) { continue; }
+                specificSet.delete(selector);
+                out.exceptedFilters.push(selector);
             }
         }
 
@@ -855,11 +840,23 @@ FilterContainer.prototype.retrieveSpecificSelectors = function(
             );
         }
 
-        // Some procedural filters are really declarative cosmetic filters, so
-        // we extract and inject them immediately.
+        // Apply exceptions to procedural filterset.
+        // Also, some procedural filters are really declarative cosmetic
+        // filters, so we extract and inject them immediately.
         if ( proceduralSet.size !== 0 ) {
             for ( const json of proceduralSet ) {
-                const cssRule = this.cssRuleFromProcedural(json);
+                const pfilter = JSON.parse(json);
+                if ( exceptionSet.has(json) ) {
+                    proceduralSet.delete(json);
+                    out.exceptedFilters.push(json);
+                    continue;
+                }
+                if ( exceptionSet.has(pfilter.raw) ) {
+                    proceduralSet.delete(json);
+                    out.exceptedFilters.push(pfilter.raw);
+                    continue;
+                }
+                const cssRule = this.cssRuleFromProcedural(pfilter);
                 if ( cssRule === undefined ) { continue; }
                 injectedCSS.push(cssRule);
                 proceduralSet.delete(json);
@@ -954,16 +951,22 @@ FilterContainer.prototype.getFilterCount = function() {
 /******************************************************************************/
 
 FilterContainer.prototype.dump = function() {
-    const generics = [];
+    const lowlyGenerics = [];
     for ( const selectors of this.lowlyGeneric.values() ) {
-        generics.push(...selectors.split(',\n'));
+        lowlyGenerics.push(...selectors.split(',\n'));
     }
+    lowlyGenerics.sort();
+    const highlyGenerics = Array.from(this.highlyGeneric.simple.dict);
+    highlyGenerics.push(Array.from(this.highlyGeneric.complex.dict));
+    highlyGenerics.sort();
     return [
         'Cosmetic Filtering Engine internals:',
         `specific: ${this.specificFilters.size}`,
-        `generic: ${generics.length}`,
-        `+ selectors: ${this.lowlyGeneric.size}`,
-        ...generics.map(a => `  ${a}`),
+        `generic: ${lowlyGenerics.length + highlyGenerics.length}`,
+        `+ lowly generic: ${lowlyGenerics.length}`,
+        ...lowlyGenerics.map(a => `  ${a}`),
+        `+ highly generic: ${highlyGenerics.length}`,
+        ...highlyGenerics.map(a => `  ${a}`),
     ].join('\n');
 };
 

@@ -27,7 +27,11 @@
 
 'use strict';
 
-(function(CodeMirror) {
+import { dom, qs$ } from '../dom.js';
+import { i18n$ } from '../i18n.js';
+
+{
+    const CodeMirror = self.CodeMirror;
 
     const searchOverlay = function(query, caseInsensitive) {
         if ( typeof query === 'string' )
@@ -69,19 +73,20 @@
         );
     };
 
-    const searchWidgetInputHandler = function(cm) {
-        let state = getSearchState(cm);
-        if ( queryTextFromSearchWidget(cm) === state.queryText ) { return; }
-        if ( state.queryTimer !== null ) {
-            clearTimeout(state.queryTimer);
+    const searchWidgetInputHandler = function(cm, ev) {
+        const state = getSearchState(cm);
+        if ( ev.isTrusted !== true ) {
+            if ( state.queryText === '' ) {
+                clearSearch(cm);
+            } else {
+                cm.operation(function() {
+                    startSearch(cm, state);
+                });
+            }
+            return;
         }
-        state.queryTimer = setTimeout(
-            () => {
-                state.queryTimer = null;
-                findCommit(cm, 0);
-            },
-            350
-        );
+        if ( queryTextFromSearchWidget(cm) === state.queryText ) { return; }
+        state.queryTimer.offon(350);
     };
 
     const searchWidgetClickHandler = function(cm, ev) {
@@ -90,6 +95,10 @@
             findNext(cm, -1);
         } else if ( tcl.contains('cm-search-widget-down') ) {
             findNext(cm, 1);
+        } else if ( tcl.contains('cm-linter-widget-up') ) {
+            findNextError(cm, -1);
+        } else if ( tcl.contains('cm-linter-widget-down') ) {
+            findNextError(cm, 1);
         }
         if ( ev.target.localName !== 'input' ) {
             ev.preventDefault();
@@ -123,7 +132,6 @@
             this.panel = cm.addPanel(this.widget);
         }
         this.queryText = '';
-        this.queryTimer = null;
         this.dirty = true;
         this.lines = [];
         cm.on('changes', (cm, changes) => {
@@ -136,6 +144,9 @@
         });
         cm.on('cursorActivity', cm => {
             updateCount(cm);
+        });
+        this.queryTimer = vAPI.defer.create(( ) => {
+            findCommit(cm, 0);
         });
     };
 
@@ -354,6 +365,33 @@
         });
     };
 
+    const findNextError = function(cm, dir) {
+        const doc = cm.getDoc();
+        const cursor = cm.getCursor('from');
+        const cursorLine = cursor.line;
+        const start = dir < 0 ? 0 : cursorLine + 1;
+        const end = dir < 0 ? cursorLine : doc.lineCount();
+        let found = -1;
+        doc.eachLine(start, end, lineHandle => {
+            const markers = lineHandle.gutterMarkers || null;
+            if ( markers === null ) { return; }
+            const marker = markers['CodeMirror-lintgutter'];
+            if ( marker === undefined ) { return; }
+            if ( marker.dataset.lint !== 'error' )  { return; }
+            const line = lineHandle.lineNo();
+            if ( dir < 0 ) {
+                found = line;
+                return;
+            }
+            found = line;
+            return true;
+        });
+        if ( found === -1 || found === cursorLine ) { return; }
+        cm.getDoc().setCursor(found);
+        const { clientHeight } = cm.getScrollInfo();
+        cm.scrollIntoView({ line: found, ch: 0 }, clientHeight >>> 1);
+    };
+
     const clearSearch = function(cm, hard) {
         cm.operation(function() {
             const state = getSearchState(cm);
@@ -381,10 +419,7 @@
 
     const findCommit = function(cm, dir) {
         const state = getSearchState(cm);
-        if ( state.queryTimer !== null ) {
-            clearTimeout(state.queryTimer);
-            state.queryTimer = null;
-        }
+        state.queryTimer.off();
         const queryText = queryTextFromSearchWidget(cm);
         if ( queryText === state.queryText ) { return; }
         state.queryText = queryText;
@@ -433,6 +468,11 @@
                   '<span class="cm-search-widget-down cm-search-widget-button fa-icon fa-icon-vflipped">angle-up</span>&emsp;' +
                   '<span class="cm-search-widget-count"></span>' +
                 '</span>' +
+                '<span class="cm-linter-widget" data-lint="0">' +
+                  '<span class="cm-linter-widget-count"></span>&emsp;' +
+                  '<span class="cm-linter-widget-up cm-search-widget-button fa-icon">angle-up</span>&nbsp;' +
+                  '<span class="cm-linter-widget-down cm-search-widget-button fa-icon fa-icon-vflipped">angle-up</span>&emsp;' +
+                '</span>' +
                 '<a class="fa-icon sourceURL" href>external-link</a>' +
               '</div>' +
             '</div>';
@@ -448,5 +488,15 @@
 
     CodeMirror.defineInitHook(function(cm) {
         getSearchState(cm);
+        cm.on('linterDone', details => {
+            const linterWidget = qs$('.cm-linter-widget');
+            const count = details.errorCount;
+            if ( linterWidget.dataset.lint === `${count}` ) { return; }
+            linterWidget.dataset.lint = `${count}`;
+            dom.text(
+                qs$(linterWidget, '.cm-linter-widget-count'),
+                i18n$('linterMainReport').replace('{{count}}', count.toLocaleString())
+            );
+        });
     });
-})(self.CodeMirror);
+}

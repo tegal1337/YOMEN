@@ -275,13 +275,13 @@
     "message": "Verze",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "↑: Zdůrazněte řádky, které mají skripty třetí strany",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "skript",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "↑: Zdůrazněte řádky, které mají rámečky třetí strany",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "rámec",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "Vytvořit",
@@ -900,7 +900,7 @@
     "description": "First paragraph of 'Documentation' section in Support pane"
   },
   "supportS2H": {
-    "message": "Otázky a podpora",
+    "message": "Dotazy a hlášení",
     "description": "Header of 'Questions and support' section in Support pane"
   },
   "supportS2P1": {
@@ -1215,6 +1215,10 @@
     "message": "Dočasně povolit velké multimediální prvky",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "Zobrazit zdroj…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "Stiskněte zkratku",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "Klik pro načtení",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "Chyby: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "Nedokáže správně filtrovat při spuštění prohlížeče.\nZnovu načtěte stránku, abyste zajistili správné filtrování.",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "This entry must be the last one",

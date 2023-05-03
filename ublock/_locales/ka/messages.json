@@ -275,13 +275,13 @@
     "message": "ვერსია",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "↑: გამოკვეთა რიგებისა, გარეშე მხარის სკრიპტებით",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "სკრიპტი",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "↑: გამოკვეთა რიგებისა, გარეშე მხარის სკრიპტებით",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "ჩარჩო",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "შექმნა",
@@ -356,7 +356,7 @@
     "description": "Checkbox to let user access advanced, technical features"
   },
   "settingsPrefetchingDisabledPrompt": {
-    "message": "წინასწარი ჩატვირთვის გათიშვა (ქსელის შეზღუდული მოთხოვნებისათვის კავშირების თავიდან ასაცილებლად)",
+    "message": "წინასწარი ჩატვირთვის გათიშვა (კავშირის არიდება ქსელის შეზღუდული მოთხოვნებისთვის)",
     "description": "English: "
   },
   "settingsHyperlinkAuditingDisabledPrompt": {
@@ -372,7 +372,7 @@
     "description": ""
   },
   "settingPerSiteSwitchGroupSynopsis": {
-    "message": "ეს ნაგულისხმევი მითითებები შესაძლებელია შეიცვალოს ცალკეული საიტებისთვის",
+    "message": "ეს ნაგულისხმევი მითითებები შესაძლებელია შეიცვალოს ცალკეული საიტისთვის",
     "description": ""
   },
   "settingsNoCosmeticFilteringPrompt": {
@@ -404,7 +404,7 @@
     "description": "Section for controlling advanced-user settings"
   },
   "settingsAdvancedSynopsis": {
-    "message": "შესაძლებლობები, მხოლოდ ტექნიკური მომხმარებლებისთვის",
+    "message": "შესაძლებლობები მხოლოდ ტექნიკური მომხმარებლებისთვის",
     "description": "Description of section controlling advanced-user settings"
   },
   "settingsAdvancedUserSettings": {
@@ -436,7 +436,7 @@
     "description": "A button in the in the _3rd-party filters_ pane"
   },
   "3pPurgeAll": {
-    "message": "კეშის გასუფთავება",
+    "message": "მარაგის გასუფთავება",
     "description": "A button in the in the _3rd-party filters_ pane"
   },
   "3pParseAllABPHideFiltersPrompt1": {
@@ -912,7 +912,7 @@
     "description": "Header of 'Filter issues' section in Support pane"
   },
   "supportS3P1": {
-    "message": "ცალკეულ საიტებზე ფილტრების ხარვეზების მოსახსენებლად გამოიყენეთ <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code> ხარვეზების აღსარიცხავი</span>. საჭიროებს GitHub-ანგარიშს.",
+    "message": "ცალკეულ საიტზე ფილტრების ხარვეზების მოსახსენებლად გამოიყენეთ <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code> ხარვეზების აღსარიცხავი</span>. დაგჭირდებათ GitHub-ანგარიში.",
     "description": "First paragraph of 'Filter issues' section in Support pane"
   },
   "supportS3P2": {
@@ -928,7 +928,7 @@
     "description": "Header of 'Bug report' section in Support pane"
   },
   "supportS4P1": {
-    "message": "თავად uBlock Origin-ის ხარვეზების მოსახსენებლად, გამოიყენეთ <span data-url=\"https://github.com/uBlockOrigin/uBlock-issues/issues?q=is%3Aissue\"><code>uBlockOrigin/uBlock-issue</code> ხარვეზების აღსარიცხავი</span>. საჭიროებს GitHub-ანგარიშს.",
+    "message": "თავად uBlock Origin-ის ხარვეზების მოსახსენებლად, გამოიყენეთ <span data-url=\"https://github.com/uBlockOrigin/uBlock-issues/issues?q=is%3Aissue\"><code>uBlockOrigin/uBlock-issue</code> ხარვეზების აღსარიცხავი</span>. დაგჭირდებათ GitHub-ანგარიში.",
     "description": "First paragraph of 'Bug report' section in Support pane"
   },
   "supportS5H": {
@@ -1036,7 +1036,7 @@
     "description": "Shown in the About pane"
   },
   "aboutCDNsInfo": {
-    "message": "შემთხვევით შერჩეული CDN გამოიყენება, როცა ფილტრების განახლებაა საჭირო",
+    "message": "CDN შეირჩევა შემთხვევითობით ფილტრების განახლების დროს",
     "description": "Shown in the About pane"
   },
   "aboutBackupDataButton": {
@@ -1215,6 +1215,10 @@
     "message": "დიდი მედიაფაილების დროებით დაშვება",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "პირველწყარო კოდის ნახვა…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "მალსახმობის მითითება",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "დაწკაპეთ ჩასატვირთად",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "შეცდომა: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "სათანადოდ ვერ გაიფილტრა ბრაუზერის ჩართვისას.\nახლიდან გახსენით გვერდი უკეთ გასაფილტრად.",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "This entry must be the last one",

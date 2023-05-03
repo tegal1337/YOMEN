@@ -29,6 +29,8 @@ import './vapi-common.js';
 import './vapi-background.js';
 import './vapi-background-ext.js';
 
+/******************************************************************************/
+
 // The following modules are loaded here until their content is better organized
 import './commands.js';
 import './messaging.js';
@@ -67,7 +69,7 @@ import {
 
 /******************************************************************************/
 
-vAPI.app.onShutdown = function() {
+vAPI.app.onShutdown = ( ) => {
     staticFilteringReverseLookup.shutdown();
     io.updateStop();
     staticNetFilteringEngine.reset();
@@ -90,7 +92,7 @@ vAPI.app.onShutdown = function() {
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1652925#c19
 //   Mind discarded tabs.
 
-const initializeTabs = async function() {
+const initializeTabs = async ( ) => {
     const manifest = browser.runtime.getManifest();
     if ( manifest instanceof Object === false ) { return; }
 
@@ -101,6 +103,7 @@ const initializeTabs = async function() {
         const tabs = await vAPI.tabs.query({ url: '<all_urls>' });
         for ( const tab of tabs  ) {
             if ( tab.discarded === true ) { continue; }
+            if ( tab.status === 'unloaded' ) { continue; }
             const { id, url } = tab;
             µb.tabContextManager.commit(id, url);
             µb.bindTabToPageStore(id, 'tabCommitted', tab);
@@ -116,21 +119,23 @@ const initializeTabs = async function() {
             tabIds.push(id);
         }
     }
-    const results = await Promise.all(toCheck);
-    for ( let i = 0; i < results.length; i++ ) {
-        const result = results[i];
-        if ( result.length === 0 || result[0] !== true ) { continue; }
-        // Inject declarative content scripts programmatically.
-        for ( const contentScript of manifest.content_scripts ) {
-            for ( const file of contentScript.js ) {
-                vAPI.tabs.executeScript(tabIds[i], {
-                    file: file,
-                    allFrames: contentScript.all_frames,
-                    runAt: contentScript.run_at
-                });
+    // We do not want to block on content scripts injection
+    Promise.all(toCheck).then(results => {
+        for ( let i = 0; i < results.length; i++ ) {
+            const result = results[i];
+            if ( result.length === 0 || result[0] !== true ) { continue; }
+            // Inject declarative content scripts programmatically.
+            for ( const contentScript of manifest.content_scripts ) {
+                for ( const file of contentScript.js ) {
+                    vAPI.tabs.executeScript(tabIds[i], {
+                        file: file,
+                        allFrames: contentScript.all_frames,
+                        runAt: contentScript.run_at
+                    });
+                }
             }
         }
-    }
+    });
 };
 
 /******************************************************************************/
@@ -140,7 +145,7 @@ const initializeTabs = async function() {
 // https://www.reddit.com/r/uBlockOrigin/comments/s7c9go/
 //   Abort suspending network requests when uBO is merely being installed.
 
-const onVersionReady = function(lastVersion) {
+const onVersionReady = lastVersion => {
     if ( lastVersion === vAPI.app.version ) { return; }
 
     vAPI.storage.set({ version: vAPI.app.version });
@@ -179,7 +184,7 @@ const onVersionReady = function(lastVersion) {
 // https://github.com/uBlockOrigin/uBlock-issues/issues/1433
 //   Allow admins to add their own trusted-site directives.
 
-const onNetWhitelistReady = function(netWhitelistRaw, adminExtra) {
+const onNetWhitelistReady = (netWhitelistRaw, adminExtra) => {
     if ( typeof netWhitelistRaw === 'string' ) {
         netWhitelistRaw = netWhitelistRaw.split('\n');
     }
@@ -201,7 +206,7 @@ const onNetWhitelistReady = function(netWhitelistRaw, adminExtra) {
 
 // User settings are in memory
 
-const onUserSettingsReady = function(fetched) {
+const onUserSettingsReady = fetched => {
     // Terminate suspended state?
     const tnow = Date.now() - vAPI.T0;
     if (
@@ -234,17 +239,6 @@ const onUserSettingsReady = function(fetched) {
             fetched.externalLists.trim().split(/[\n\r]+/);
     }
 
-    // https://github.com/uBlockOrigin/uBlock-issues/issues/1513
-    //   Transition nicely.
-    //   TODO: remove when current version of uBO is well past 1.34.0.
-    if ( typeof µb.hiddenSettings.cnameUncloak === false ) {
-        fetched.cnameUncloakEnabled = false;
-        µb.hiddenSettings.cnameUncloak = true;
-        µb.saveHiddenSettings();
-    }
-    µb.hiddenSettingsDefault.cnameUncloak = undefined;
-    µb.hiddenSettings.cnameUncloak = undefined;
-
     fromFetch(µb.userSettings, fetched);
 
     if ( µb.privacySettingsSupported ) {
@@ -271,7 +265,7 @@ const onUserSettingsReady = function(fetched) {
 // https://github.com/uBlockOrigin/uBlock-issues/issues/1365
 //   Wait for removal of invalid cached data to be completed.
 
-const onCacheSettingsReady = async function(fetched) {
+const onCacheSettingsReady = async (fetched = {}) => {
     if ( fetched.compiledMagic !== µb.systemSettings.compiledMagic ) {
         µb.compiledFormatChanged = true;
         µb.selfieIsInvalid = true;
@@ -289,7 +283,7 @@ const onCacheSettingsReady = async function(fetched) {
 
 /******************************************************************************/
 
-const onHiddenSettingsReady = async function() {
+const onHiddenSettingsReady = async ( ) => {
     // Maybe customize webext flavor
     if ( µb.hiddenSettings.modifyWebextFlavor !== 'unset' ) {
         const tokens = µb.hiddenSettings.modifyWebextFlavor.split(/\s+/);
@@ -333,7 +327,7 @@ const onHiddenSettingsReady = async function() {
 
 /******************************************************************************/
 
-const onFirstFetchReady = function(fetched, adminExtra) {
+const onFirstFetchReady = (fetched, adminExtra) => {
     // https://github.com/uBlockOrigin/uBlock-issues/issues/507
     //   Firefox-specific: somehow `fetched` is undefined under certain
     //   circumstances even though we asked to load with default values.
@@ -358,14 +352,14 @@ const onFirstFetchReady = function(fetched, adminExtra) {
 
 /******************************************************************************/
 
-const toFetch = function(from, fetched) {
+const toFetch = (from, fetched) => {
     for ( const k in from ) {
         if ( from.hasOwnProperty(k) === false ) { continue; }
         fetched[k] = from[k];
     }
 };
 
-const fromFetch = function(to, fetched) {
+const fromFetch = (to, fetched) => {
     for ( const k in to ) {
         if ( to.hasOwnProperty(k) === false ) { continue; }
         if ( fetched.hasOwnProperty(k) === false ) { continue; }
@@ -373,7 +367,7 @@ const fromFetch = function(to, fetched) {
     }
 };
 
-const createDefaultProps = function() {
+const createDefaultProps = ( ) => {
     const fetchableProps = {
         'dynamicFilteringString': µb.dynamicFilteringDefault.join('\n'),
         'urlFilteringString': '',
@@ -393,6 +387,8 @@ const createDefaultProps = function() {
 /******************************************************************************/
 
 try {
+    ubolog(`Start sequence of loading storage-based data ${Date.now()-vAPI.T0} ms after launch`);
+
     // https://github.com/gorhill/uBlock/issues/531
     await µb.restoreAdminSettings();
     ubolog(`Admin settings ready ${Date.now()-vAPI.T0} ms after launch`);
@@ -463,11 +459,18 @@ if ( selfieIsValid !== true ) {
     }
 }
 
+// Flush memory cache -- unsure whether the browser does this internally
+// when loading a new extension.
+vAPI.net.handlerBehaviorChanged();
+
 // Final initialization steps after all needed assets are in memory.
 
 // https://github.com/uBlockOrigin/uBlock-issues/issues/974
 //   This can be used to defer filtering decision-making.
 µb.readyToFilter = true;
+
+// Initialize internal state with maybe already existing tabs.
+await initializeTabs();
 
 // Start network observers.
 webRequest.start();
@@ -478,9 +481,6 @@ webRequest.start();
 // garbage collection of these resources kicks in. Relinquishing as soon
 // as possible ensure minimal memory usage baseline.
 lz4Codec.relinquish();
-
-// Initialize internal state with maybe already existing tabs.
-initializeTabs();
 
 // https://github.com/chrisaljoudi/uBlock/issues/184
 //   Check for updates not too far in the future.

@@ -26,9 +26,10 @@
 const StaticExtFilteringHostnameDB = class {
     constructor(nBits, selfie = undefined) {
         this.nBits = nBits;
-        this.timer = undefined;
         this.strToIdMap = new Map();
         this.hostnameToSlotIdMap = new Map();
+        this.regexToSlotIdMap = new Map();
+        this.regexMap = new Map();
         // Array of integer pairs
         this.hostnameSlots = [];
         // Array of strings (selectors and pseudo-selectors)
@@ -37,6 +38,9 @@ const StaticExtFilteringHostnameDB = class {
         if ( selfie !== undefined ) {
             this.fromSelfie(selfie);
         }
+        this.cleanupTimer = vAPI.defer.create(( ) => {
+            this.strToIdMap.clear();
+        });
     }
 
     store(hn, bits, s) {
@@ -46,14 +50,21 @@ const StaticExtFilteringHostnameDB = class {
             iStr = this.strSlots.length;
             this.strSlots.push(s);
             this.strToIdMap.set(s, iStr);
-            if ( this.timer === undefined ) {
+            if ( this.cleanupTimer.ongoing() === false ) {
                 this.collectGarbage(true);
             }
         }
         const strId = iStr << this.nBits | bits;
-        let iHn = this.hostnameToSlotIdMap.get(hn);
+        const hnIsNotRegex = hn.charCodeAt(0) !== 0x2F /* / */;
+        let iHn = hnIsNotRegex
+            ? this.hostnameToSlotIdMap.get(hn)
+            : this.regexToSlotIdMap.get(hn);
         if ( iHn === undefined ) {
-            this.hostnameToSlotIdMap.set(hn, this.hostnameSlots.length);
+            if ( hnIsNotRegex ) {
+                this.hostnameToSlotIdMap.set(hn, this.hostnameSlots.length);
+            } else {
+                this.regexToSlotIdMap.set(hn, this.hostnameSlots.length);
+            }
             this.hostnameSlots.push(strId, 0);
             return;
         }
@@ -67,92 +78,72 @@ const StaticExtFilteringHostnameDB = class {
 
     clear() {
         this.hostnameToSlotIdMap.clear();
+        this.regexToSlotIdMap.clear();
         this.hostnameSlots.length = 0;
         this.strSlots.length = 0;
         this.strToIdMap.clear();
+        this.regexMap.clear();
         this.size = 0;
     }
 
     collectGarbage(later = false) {
-        if ( later === false ) {
-            if ( this.timer !== undefined ) {
-                self.cancelIdleCallback(this.timer);
-                this.timer = undefined;
-            }
-            this.strToIdMap.clear();
-            return;
+        if ( later ) {
+            return this.cleanupTimer.onidle(5000, { timeout: 5000 });
         }
-        if ( this.timer !== undefined ) { return; }
-        this.timer = self.requestIdleCallback(
-            ( ) => {
-                this.timer = undefined;
-                this.strToIdMap.clear();
-            },
-            { timeout: 5000 }
-        );
+        this.cleanupTimer.off();
+        this.strToIdMap.clear();
     }
 
-    // modifiers = 1: return only specific items
-    // modifiers = 2: return only generic items
+    // modifiers = 0: all items
+    // modifiers = 1: only specific items
+    // modifiers = 2: only generic items
+    // modifiers = 3: only regex-based items
     //
     retrieve(hostname, out, modifiers = 0) {
-        if ( modifiers === 2 ) {
-            hostname = '';
-        }
-        const mask = out.length - 1; // out.length must be power of two
+        let hn = hostname;
+        if ( modifiers === 2 ) { hn = ''; }
         for (;;) {
-            let iHn = this.hostnameToSlotIdMap.get(hostname);
-            if ( iHn !== undefined ) {
-                do {
-                    const strId = this.hostnameSlots[iHn+0];
-                    out[strId & mask].add(
-                        this.strSlots[strId >>> this.nBits]
-                    );
-                    iHn = this.hostnameSlots[iHn+1];
-                } while ( iHn !== 0 );
+            const hnSlot = this.hostnameToSlotIdMap.get(hn);
+            if ( hnSlot !== undefined ) {
+                this.retrieveFromSlot(hnSlot, out);
             }
-            if ( hostname === '' ) { break; }
-            const pos = hostname.indexOf('.');
+            if ( hn === '' ) { break; }
+            const pos = hn.indexOf('.');
             if ( pos === -1 ) {
                 if ( modifiers === 1 ) { break; }
-                hostname = '';
+                hn = '';
             } else {
-                hostname = hostname.slice(pos + 1);
+                hn = hn.slice(pos + 1);
             }
+        }
+        if ( modifiers !== 0 && modifiers !== 3 ) { return; }
+        if ( this.regexToSlotIdMap.size === 0 ) { return; }
+        // TODO: consider using a combined regex to test once for whether
+        // iterating is worth it.
+        for ( const restr of this.regexToSlotIdMap.keys() ) {
+            let re = this.regexMap.get(restr);
+            if ( re === undefined ) {
+                this.regexMap.set(restr, (re = new RegExp(restr.slice(1,-1))));
+            }
+            if ( re.test(hostname) === false ) { continue; }
+            this.retrieveFromSlot(this.regexToSlotIdMap.get(restr), out);
         }
     }
 
-    hasStr(hostname, exceptionBit, value) {
-        let found = false;
-        for (;;) {
-            let iHn = this.hostnameToSlotIdMap.get(hostname);
-            if ( iHn !== undefined ) {
-                do {
-                    const strId = this.hostnameSlots[iHn+0];
-                    const str = this.strSlots[strId >>> this.nBits];
-                    if ( (strId & exceptionBit) !== 0 ) {
-                        if ( str === value || str === '' ) { return false; }
-                    }
-                    if ( str === value ) { found = true; }
-                    iHn = this.hostnameSlots[iHn+1];
-                } while ( iHn !== 0 );
-            }
-            if ( hostname === '' ) { break; }
-            const pos = hostname.indexOf('.');
-            if ( pos !== -1 ) {
-                hostname = hostname.slice(pos + 1);
-            } else if ( hostname !== '*' ) {
-                hostname = '*';
-            } else {
-                hostname = '';
-            }
-        }
-        return found;
+    retrieveFromSlot(hnSlot, out) {
+        if ( hnSlot === undefined ) { return; }
+        const mask = out.length - 1; // out.length must be power of two
+        do {
+            const strId = this.hostnameSlots[hnSlot+0];
+            out[strId & mask].add(this.strSlots[strId >>> this.nBits]);
+            hnSlot = this.hostnameSlots[hnSlot+1];
+        } while ( hnSlot !== 0 );
     }
 
     toSelfie() {
         return {
             hostnameToSlotIdMap: Array.from(this.hostnameToSlotIdMap),
+            regexToSlotIdMap: Array.from(this.regexToSlotIdMap),
             hostnameSlots: this.hostnameSlots,
             strSlots: this.strSlots,
             size: this.size
@@ -162,6 +153,10 @@ const StaticExtFilteringHostnameDB = class {
     fromSelfie(selfie) {
         if ( selfie === undefined ) { return; }
         this.hostnameToSlotIdMap = new Map(selfie.hostnameToSlotIdMap);
+        // Regex-based lookup available in uBO 1.47.0 and above
+        if ( Array.isArray(selfie.regexToSlotIdMap) ) {
+            this.regexToSlotIdMap = new Map(selfie.regexToSlotIdMap);
+        }
         this.hostnameSlots = selfie.hostnameSlots;
         this.strSlots = selfie.strSlots;
         this.size = selfie.size;

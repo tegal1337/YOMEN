@@ -260,7 +260,7 @@
     "description": ""
   },
   "popup3pFrameRulePrompt": {
-    "message": "староннія фрэймы",
+    "message": "староннія рамкі",
     "description": ""
   },
   "popupHitDomainCountPrompt": {
@@ -275,13 +275,13 @@
     "message": "Версія",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "↑: Падкрэсліваць радкі, якія ўтрымліваюць староннія скрыпты",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "скрыпт",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "↑: Падкрэсліваць радкі, якія ўтрымліваюць староннія фрэймы",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "рамка",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "Стварыць",
@@ -1215,6 +1215,10 @@
     "message": "Тымчасова дазволіць вялікія медыя-элементы",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "Паглядзець зыходны код…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "Упішыце спалучэнне",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1224,7 +1228,7 @@
     "description": "Tooltip for the button used to lock scrolling between the views in the 'My rules' pane"
   },
   "genericCopyToClipboard": {
-    "message": "Капіяваць у буфер",
+    "message": "Капіяваць у буфер абмену",
     "description": "Label for buttons used to copy something to the clipboard"
   },
   "genericSelectAll": {
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "Націсніце, каб загрузіць",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "Памылак: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "Немагчыма фільтраваць належным чынам пры запуску браўзера.\nАбнавіце старонку, каб забяспечыць належнае фільтраванне.",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "This entry must be the last one",

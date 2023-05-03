@@ -32,7 +32,7 @@
         <button id="exportWhitelistToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="whitelistExport">_</span><span class="hover"></span></button>
     </p>
 </div>
-<div id="whitelist" class="codeMirrorContainer"></div>
+<div id="whitelist" class="codeMirrorContainer cm-theme-override"></div>
 
 <div class="hidden">
     <input id="importFilePicker" type="file" accept="text/plain">
@@ -45,13 +45,14 @@
 <script src="lib/codemirror/addon/selection/active-line.js"></script>
 <script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
 
-<script src="js/codemirror/search.js"></script>
-<script src="js/codemirror/search-thread.js"></script>
-
-<script src="js/fa-icons.js"></script>
 <script src="js/vapi.js"></script>
 <script src="js/vapi-common.js"></script>
 <script src="js/vapi-client.js"></script>
+
+<script src="js/codemirror/search.js" type="module"></script>
+<script src="js/codemirror/search-thread.js"></script>
+
+<script src="js/fa-icons.js" type="module"></script>
 <script src="js/theme.js" type="module"></script>
 <script src="js/i18n.js" type="module"></script>
 <script src="js/dashboard-common.js" type="module"></script>

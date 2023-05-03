@@ -29,12 +29,21 @@ https://work.ink/adblock-whitelist.txt
 https://www.ebates.com/whitelist/ebates-cash-back-shopping.txt
 https://www.rakuten.com/whitelist/ebates-cash-back-shopping.txt
 https://www.topcashback.co.uk/misc/AdBlockWhiteList.aspx
+https://www.topcashback.co.uk/Misc/AdBlockWhiteList.aspx
+https://ads-for-open-source.readthedocs.io/en/latest/_static/lists/opensource-ads.txt
+https://ads-for-open-source.readthedocs.io/en/latest/_static/lists/readthedocs-ads.txt
 
 # obsolete lists
-https://gitcdn.xyz/repo/NanoAdblocker/NanoFilters/master/NanoFilters/NanoBase.txt
 https://cdn.rawgit.com/NanoAdblocker/NanoFilters/master/NanoFilters/NanoAnnoyance.txt
 https://cdn.rawgit.com/NanoAdblocker/NanoFilters/master/NanoFilters/NanoBase.txt
 https://cdn.rawgit.com/NanoAdblocker/NanoFilters/master/NanoFilters/NanoWhitelist.txt
+https://gitcdn.xyz/repo/NanoAdblocker/NanoFilters/master/NanoFilters/NanoBase.txt
+https://gitcdn.xyz/repo/NanoAdblocker/NanoFilters/master/NanoMirror/NanoDefender.txt
+https://raw.githubusercontent.com/NanoAdblocker/NanoFilters/master/NanoFilters/NanoAnnoyance.txt
+https://raw.githubusercontent.com/NanoAdblocker/NanoFilters/master/NanoFilters/NanoWhitelist.txt
+https://raw.githubusercontent.com/NanoAdblocker/NanoFilters/master/NanoFiltersSource/NanoAnnoyance.txt
+https://raw.githubusercontent.com/NanoAdblocker/NanoFilters/master/NanoFiltersSource/NanoBase.txt
+https://raw.githubusercontent.com/NanoAdblocker/NanoFilters/master/NanoFiltersSource/NanoWhitelist.txt
 https://raw.githubusercontent.com/jspenguin2017/uBlockProtector/master/uBlockProtectorList.txt
 
 # outdated prebake list

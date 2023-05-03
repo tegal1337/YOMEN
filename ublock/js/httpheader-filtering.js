@@ -27,8 +27,8 @@ import logger from './logger.js';
 import µb from './background.js';
 import { entityFromDomain } from './uri-utils.js';
 import { sessionFirewall } from './filtering-engines.js';
-
 import { StaticExtFilteringHostnameDB } from './static-ext-filtering-db.js';
+import * as sfp from './static-filtering-parser.js';
 
 /******************************************************************************/
 
@@ -41,12 +41,10 @@ const $exceptions = new Set();
 let acceptedCount = 0;
 let discardedCount = 0;
 
-const headerIndexFromName = function(name, headers) {
-    let i = headers.length;
-    while ( i-- ) {
-        if ( headers[i].name.toLowerCase() === name ) {
-            return i;
-        }
+const headerIndexFromName = function(name, headers, start = 0) {
+    for ( let i = start; i < headers.length; i++ ) {
+        if ( headers[i].name.toLowerCase() !== name ) { continue; }
+        return i;
     }
     return -1;
 };
@@ -88,16 +86,17 @@ httpheaderFilteringEngine.freeze = function() {
 httpheaderFilteringEngine.compile = function(parser, writer) {
     writer.select('HTTPHEADER_FILTERS');
 
-    const { compiled, exception } = parser.result;
-    const headerName = compiled.slice(15, -1);
+    const isException = parser.isException();
+    const root = parser.getBranchFromType(sfp.NODE_TYPE_EXT_PATTERN_RESPONSEHEADER);
+    const headerName = parser.getNodeString(root);
 
     // Tokenless is meaningful only for exception filters.
-    if ( headerName === '' && exception === false ) { return; }
+    if ( headerName === '' && isException === false ) { return; }
 
     // Only exception filters are allowed to be global.
     if ( parser.hasOptions() === false ) {
-        if ( exception ) {
-            writer.push([ 64, '', 1, compiled ]);
+        if ( isException ) {
+            writer.push([ 64, '', 1, headerName ]);
         }
         return;
     }
@@ -106,16 +105,16 @@ httpheaderFilteringEngine.compile = function(parser, writer) {
     //   Ignore instances of exception filter with negated hostnames,
     //   because there is no way to create an exception to an exception.
 
-    for ( const { hn, not, bad } of parser.extOptions() ) {
+    for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
         if ( bad ) { continue; }
         let kind = 0;
-        if ( exception ) {
+        if ( isException ) {
             if ( not ) { continue; }
             kind |= 1;
         } else if ( not ) {
             kind |= 1;
         }
-        writer.push([ 64, hn, kind, compiled ]);
+        writer.push([ 64, hn, kind, headerName ]);
     }
 };
 
@@ -137,7 +136,7 @@ httpheaderFilteringEngine.fromCompiledContent = function(reader) {
         duplicates.add(fingerprint);
         const args = reader.args();
         if ( args.length < 4 ) { continue; }
-        filterDB.store(args[1], args[2], args[3].slice(15, -1));
+        filterDB.store(args[1], args[2], args[3]);
     }
 };
 
@@ -174,18 +173,20 @@ httpheaderFilteringEngine.apply = function(fctxt, headers) {
     const hasGlobalException = $exceptions.has('');
 
     let modified = false;
+    let i = 0;
 
     for ( const name of $headers ) {
-        for (;;) {
-            const i = headerIndexFromName(name, headers);
-            if ( i === -1 ) { break; }
-            const isExcepted = hasGlobalException || $exceptions.has(name);
-            if ( isExcepted ) {
-                if ( logger.enabled ) {
-                    logOne(true, hasGlobalException ? '' : name, fctxt);
-                }
-                break;
+        const isExcepted = hasGlobalException || $exceptions.has(name);
+        if ( isExcepted ) {
+            if ( logger.enabled ) {
+                logOne(true, hasGlobalException ? '' : name, fctxt);
             }
+            continue;
+        }
+        i = 0;
+        for (;;) {
+            i = headerIndexFromName(name, headers, i);
+            if ( i === -1 ) { break; }
             headers.splice(i, 1);
             if ( logger.enabled ) {
                 logOne(false, name, fctxt);

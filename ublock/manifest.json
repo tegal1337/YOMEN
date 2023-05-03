@@ -6,10 +6,11 @@
   "browser_action": {
     "default_icon": {
       "16": "img/icon_16.png",
-      "32": "img/icon_32.png"
+      "32": "img/icon_32.png",
+      "64": "img/icon_64.png"
     },
     "default_popup": "popup-fenix.html",
-    "default_title": "uBlock Origin dev build"
+    "default_title": "uBlock Origin"
   },
   "commands": {
     "launch-element-picker": {
@@ -74,8 +75,8 @@
   },
   "incognito": "split",
   "manifest_version": 2,
-  "minimum_chrome_version": "66.0",
-  "name": "uBlock Origin development build",
+  "minimum_chrome_version": "73.0",
+  "name": "uBlock Origin",
   "options_ui": {
     "open_in_tab": true,
     "page": "dashboard.html"
@@ -91,11 +92,11 @@
     "webRequestBlocking",
     "<all_urls>"
   ],
-  "short_name": "uBlock\u2080 dev build",
+  "short_name": "uBlock\u2080",
   "storage": {
     "managed_schema": "managed_storage.json"
   },
-  "version": "1.46.1.5",
+  "version": "1.49.2",
   "web_accessible_resources": [
     "/web_accessible_resources/*"
   ]

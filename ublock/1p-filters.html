@@ -6,7 +6,6 @@
 <title>uBlock — Your filters</title>
 
 <link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
-<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css">
 <link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
 <link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
 
@@ -33,7 +32,7 @@
         <button id="exportUserFiltersToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="1pExport">_</span><span class="hover"></span></button>
     </p>
 </div>
-<div id="userFilters" class="codeMirrorContainer codeMirrorBreakAll" spellcheck="false"></div>
+<div id="userFilters" class="codeMirrorContainer codeMirrorBreakAll cm-theme-override" spellcheck="false"></div>
 <div class="hidden">
     <input id="importFilePicker" type="file" accept="text/plain">
 </div>
@@ -44,7 +43,6 @@
 <script src="lib/codemirror/addon/edit/closebrackets.js"></script>
 <script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
 <script src="lib/codemirror/addon/fold/foldcode.js"></script>
-<script src="lib/codemirror/addon/fold/foldgutter.js"></script>
 <script src="lib/codemirror/addon/hint/show-hint.js"></script>
 <script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
 <script src="lib/codemirror/addon/search/searchcursor.js"></script>
@@ -52,14 +50,15 @@
 <script src="lib/diff/swatinem_diff.js"></script>
 <script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
 
-<script src="js/codemirror/search.js"></script>
-<script src="js/codemirror/search-thread.js"></script>
-
-<script src="js/fa-icons.js"></script>
 <script src="js/vapi.js"></script>
 <script src="js/vapi-common.js"></script>
 <script src="js/vapi-client.js"></script>
 <script src="js/vapi-client-extra.js"></script>
+
+<script src="js/codemirror/search.js" type="module"></script>
+<script src="js/codemirror/search-thread.js"></script>
+
+<script src="js/fa-icons.js" type="module"></script>
 <script src="js/theme.js" type="module"></script>
 <script src="js/i18n.js" type="module"></script>
 <script src="js/dashboard-common.js" type="module"></script>

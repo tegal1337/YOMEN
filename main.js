@@ -148,7 +148,7 @@ async function startApp(config, browserconfig)
 			await page.evaluate(() =>
 			{
 			   document
-				  .querySelector(selector.shortvideos)
+				  .querySelector("ytd-section-list-renderer > #contents > .style-scope:nth-child(1)")
 				  .remove();
 			});
 		 }
@@ -267,7 +267,7 @@ async function startApp(config, browserconfig)
 
                await pages.evaluate(() =>
                {
-                  document.querySelector('#simplebox-placeholder').click();
+                  document.querySelector('div#placeholder-area').click();
                });
                spinners.update('comment',
                {

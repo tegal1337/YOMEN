@@ -275,13 +275,13 @@
     "message": "Versija",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "↑: Izcelt rindas, kurām ir trešo pušu skripti",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "skripts",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "↑: Izcelt rindas, kurām ir trešo pušu rāmji",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "rāmis",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "Izveidot",
@@ -1215,6 +1215,10 @@
     "message": "Īslaicīgi atļaut lielos multivides elementus",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "Skatīt pirmkodu…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "Ievadīt saīsni",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "Klikšķināt, lai ielādētu",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "Kļūdas: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "Nevarēja pienācīgi aizturēt pārlūka palaišanas laikā.\nJāpārlādē lapa, lai nodrošinātu pienācīgu aizturēšanu.",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "Šim ierakstam ir jābūt pēdējam",

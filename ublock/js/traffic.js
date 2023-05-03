@@ -61,9 +61,6 @@ window.addEventListener('webextFlavor', function() {
         vAPI.webextFlavor.soup.has('firefox');
 }, { once: true });
 
-// https://github.com/uBlockOrigin/uBlock-issues/issues/1553
-const supportsFloc = document.interestCohort instanceof Function;
-
 /******************************************************************************/
 
 const patchLocalRedirectURL = url => url.charCodeAt(0) === 0x2F /* '/' */
@@ -442,22 +439,22 @@ const onBeforeBehindTheSceneRequest = function(fctxt) {
 //   request.
 
 {
+    const pageStores = new Set();
     let hostname = '';
-    let pageStores = new Set();
     let pageStoresToken = 0;
-    let gcTimer;
 
     const reset = function() {
         hostname = '';
-        pageStores = new Set();
+        pageStores.clear();
         pageStoresToken = 0;
     };
 
     const gc = ( ) => {
-        gcTimer = undefined;
         if ( pageStoresToken !== µb.pageStoresToken ) { return reset(); }
-        gcTimer = vAPI.setTimeout(gc, 30011);
+        gcTimer.on(30011);
     };
+
+    const gcTimer = vAPI.defer.create(gc);
 
     onBeforeBehindTheSceneRequest.journalAddRequest = (fctxt, result) => {
         const docHostname = fctxt.getDocHostname();
@@ -466,16 +463,13 @@ const onBeforeBehindTheSceneRequest = function(fctxt) {
             pageStoresToken !== µb.pageStoresToken
         ) {
             hostname = docHostname;
-            pageStores = new Set();
+            pageStores.clear();
             for ( const pageStore of µb.pageStores.values() ) {
                 if ( pageStore.tabHostname !== docHostname ) { continue; }
                 pageStores.add(pageStore);
             }
             pageStoresToken = µb.pageStoresToken;
-            if ( gcTimer !== undefined ) {
-                clearTimeout(gcTimer);
-            }
-            gcTimer = vAPI.setTimeout(gc, 30011);
+            gcTimer.offon(30011);
         }
         for ( const pageStore of pageStores ) {
             pageStore.journalAddRequest(fctxt, result);
@@ -560,9 +554,6 @@ const onHeadersReceived = function(details) {
         modifiedHeaders = true;
     }
     if ( injectCSP(fctxt, pageStore, responseHeaders) === true ) {
-        modifiedHeaders = true;
-    }
-    if ( supportsFloc && foilFloc(fctxt, responseHeaders) ) {
         modifiedHeaders = true;
     }
 
@@ -991,7 +982,7 @@ const injectCSP = function(fctxt, pageStore, responseHeaders) {
 
     if ( cspSubsets.length === 0 ) { return; }
 
-    µb.updateToolbarIcon(fctxt.tabId, 0x02);
+    µb.updateToolbarIcon(fctxt.tabId, 0b0010);
 
     // Use comma to merge CSP directives.
     // Ref.: https://www.w3.org/TR/CSP2/#implementation-considerations
@@ -1007,23 +998,6 @@ const injectCSP = function(fctxt, pageStore, responseHeaders) {
         value: cspSubsets.join(', ')
     });
 
-    return true;
-};
-
-/******************************************************************************/
-
-// https://github.com/uBlockOrigin/uBlock-issues/issues/1553
-// https://github.com/WICG/floc#opting-out-of-computation
-
-const foilFloc = function(fctxt, responseHeaders) {
-    const hn = fctxt.getHostname();
-    if ( scriptletFilteringEngine.hasScriptlet(hn, 1, 'no-floc') === false ) {
-        return false;
-    }
-    responseHeaders.push({
-        name: 'Permissions-Policy',
-        value: 'interest-cohort=()' }
-    );
     return true;
 };
 
@@ -1080,7 +1054,9 @@ const headerValueFromName = function(headerName, headers) {
 
 const strictBlockBypasser = {
     hostnameToDeadlineMap: new Map(),
-    cleanupTimer: undefined,
+    cleanupTimer: vAPI.defer.create(( ) => {
+        strictBlockBypasser.cleanup();
+    }),
 
     cleanup: function() {
         for ( const [ hostname, deadline ] of this.hostnameToDeadlineMap ) {
@@ -1090,35 +1066,23 @@ const strictBlockBypasser = {
         }
     },
 
+    revokeTime: function() {
+        return Date.now() + µb.hiddenSettings.strictBlockingBypassDuration * 1000;
+    },
+
     bypass: function(hostname) {
         if ( typeof hostname !== 'string' || hostname === '' ) { return; }
-        this.hostnameToDeadlineMap.set(
-            hostname,
-            Date.now() + µb.hiddenSettings.strictBlockingBypassDuration * 1000
-        );
+        this.hostnameToDeadlineMap.set(hostname, this.revokeTime());
     },
 
     isBypassed: function(hostname) {
         if ( this.hostnameToDeadlineMap.size === 0 ) { return false; }
-        let bypassDuration =
-            µb.hiddenSettings.strictBlockingBypassDuration * 1000;
-        if ( this.cleanupTimer === undefined ) {
-            this.cleanupTimer = vAPI.setTimeout(
-                ( ) => {
-                    this.cleanupTimer = undefined;
-                    this.cleanup();
-                },
-                bypassDuration + 10000
-            );
-        }
+        this.cleanupTimer.on({ sec: µb.hiddenSettings.strictBlockingBypassDuration + 10 });
         for (;;) {
             const deadline = this.hostnameToDeadlineMap.get(hostname);
             if ( deadline !== undefined ) {
                 if ( deadline > Date.now() ) {
-                    this.hostnameToDeadlineMap.set(
-                        hostname,
-                        Date.now() + bypassDuration
-                    );
+                    this.hostnameToDeadlineMap.set(hostname, this.revokeTime());
                     return true;
                 }
                 this.hostnameToDeadlineMap.delete(hostname);
@@ -1147,7 +1111,7 @@ const webRequest = {
             vAPI.net.suspend();
         }
 
-        return async ( ) => {
+        return ( ) => {
             vAPI.net.setSuspendableListener(onBeforeRequest);
             vAPI.net.addListener(
                 'onHeadersReceived',
@@ -1158,6 +1122,7 @@ const webRequest = {
             vAPI.net.addListener(
                 'onResponseStarted',
                 details => {
+                    if ( details.tabId === -1 ) { return; }
                     const pageStore = µb.pageStoreFromTabId(details.tabId);
                     if ( pageStore === null ) { return; }
                     if ( pageStore.getNetFilteringSwitch() === false ) { return; }
@@ -1168,6 +1133,14 @@ const webRequest = {
                     urls: [ 'http://*/*', 'https://*/*' ]
                 }
             );
+            vAPI.defer.once({ sec: µb.hiddenSettings.toolbarWarningTimeout }).then(( ) => {
+                if ( vAPI.net.hasUnprocessedRequest() === false ) { return; }
+                vAPI.net.removeUnprocessedRequest();
+                return vAPI.tabs.getCurrent();
+            }).then(tab => {
+                if ( tab instanceof Object === false ) { return; }
+                µb.updateToolbarIcon(tab.id, 0b0110);
+            });
             vAPI.net.unsuspend({ all: true });
         };
     })(),

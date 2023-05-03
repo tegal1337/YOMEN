@@ -62,6 +62,9 @@
             <a href="logger-ui.html#_" class="fa-icon tool enabled" target="uBOLogger" tabindex="0" data-i18n-title="popupTipLog">list-alt<span class="caption" data-i18n="popupTipLog"></span></a>
             <a href="dashboard.html" class="fa-icon tool enabled" target="uBODashboard" tabindex="0" data-i18n-title="popupTipDashboard">cogs<span class="caption" data-i18n="popupTipDashboard"></span></a>
         </div>
+        <div id="unprocessedRequestWarning">
+            <span data-i18n="unprocessedRequestTooltip"></span><span class="dismiss"><svg viewBox="0 0 20 20"><path d="M0,0 20,20M0,20 20,0" /></svg></span>
+        </div>
         <hr data-more="f">
         <div class="itemRibbon" data-more="f">
             <span data-i18n="popupVersion"></span><span id="version"></span>
@@ -77,13 +80,14 @@
         </div>
     </div>
     <div id="firewall" data-more="e">
-        <div data-des="*" data-type="*"><span data-i18n="popupAnyRulePrompt"></span><span data-src="/" data-i18n-title="popupTipGlobalRules"> </span><span data-src="." data-i18n-title="popupTipLocalRules"> </span></div>
+        <section><span class="fa-icon">filter</span><div class="filterExpressions"><div><span data-i18n="loggerRowFiltererBuiltinNot" data-expr="not">_</span><span data-i18n="loggerRowFiltererBuiltinBlocked" data-expr="blocked">_</span><span data-i18n="loggerRowFiltererBuiltinAllowed" data-expr="allowed">_</span></div><div><span data-i18n="loggerRowFiltererBuiltinNot" data-expr="not">_</span><span data-expr="script" data-i18n="popup3pScriptFilter">_</span><span data-expr="frame" data-i18n="popup3pFrameFilter">_</span></div></div></section>
+        <div data-des="*" data-type="*"><span data-i18n="popupAnyRulePrompt">_</span><span data-src="/" data-i18n-title="popupTipGlobalRules"> </span><span data-src="." data-i18n-title="popupTipLocalRules"> </span></div>
         <div data-des="*" data-type="image"><span data-i18n="popupImageRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
         <div data-des="*" data-type="3p"><span data-i18n="popup3pAnyRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
         <div data-des="*" data-type="inline-script"><span data-i18n="popupInlineScriptRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
         <div data-des="*" data-type="1p-script"><span data-i18n="popup1pScriptRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
-        <div data-des="*" data-type="3p-script"><span><span class="filter" data-i18n-title="popup3pScriptFilterTip"></span><span data-i18n="popup3pScriptRulePrompt"></span></span><span data-src="/"> </span><span data-src="."> </span></div>
-        <div data-des="*" data-type="3p-frame"><span><span class="filter" data-i18n-title="popup3pFrameFilterTip"></span><span data-i18n="popup3pFrameRulePrompt"></span></span><span data-src="/"> </span><span data-src="."> </span></div>
+        <div data-des="*" data-type="3p-script"><span data-i18n="popup3pScriptRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
+        <div data-des="*" data-type="3p-frame"><span data-i18n="popup3pFrameRulePrompt"></span><span data-src="/"> </span><span data-src="."> </span></div>
     </div>
     <div id="firewall-vspacer"></div>
 </div>
@@ -97,7 +101,7 @@
 
 <script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
 
-<script src="js/fa-icons.js"></script>
+<script src="js/fa-icons.js" type="module"></script>
 <script src="js/vapi.js"></script>
 <script src="js/vapi-common.js"></script>
 <script src="js/vapi-client.js"></script>

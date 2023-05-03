@@ -26,7 +26,6 @@
 import logger from './logger.js';
 import µb from './background.js';
 import { sessionFirewall } from './filtering-engines.js';
-
 import { StaticExtFilteringHostnameDB } from './static-ext-filtering-db.js';
 
 /******************************************************************************/
@@ -300,6 +299,14 @@ function applyCSSSelector(details, selector) {
     return modified;
 }
 
+function logError(writer, msg) {
+    logger.writeOne({
+        realm: 'message',
+        type: 'error',
+        text: msg.replace('{who}', writer.properties.get('name') || '?')
+    });
+}
+
 htmlFilteringEngine.reset = function() {
     filterDB.clear();
     pselectors.clear();
@@ -314,41 +321,44 @@ htmlFilteringEngine.freeze = function() {
 };
 
 htmlFilteringEngine.compile = function(parser, writer) {
-    const { raw, compiled, exception } = parser.result;
+    const isException = parser.isException();
+    const { raw, compiled } = parser.result;
     if ( compiled === undefined ) {
-        const who = writer.properties.get('name') || '?';
-        logger.writeOne({
-            realm: 'message',
-            type: 'error',
-            text: `Invalid HTML filter in ${who}: ##${raw}`
-        });
-        return;
+        return logError(writer, `Invalid HTML filter in {who}: ##${raw}`);
     }
 
     writer.select('HTML_FILTERS');
 
     // Only exception filters are allowed to be global.
     if ( parser.hasOptions() === false ) {
-        if ( exception ) {
+        if ( isException ) {
             writer.push([ 64, '', 1, compiled ]);
         }
         return;
     }
 
-    // TODO: Mind negated hostnames, they are currently discarded.
-
-    for ( const { hn, not, bad } of parser.extOptions() ) {
+    const compiledFilters = [];
+    let hasOnlyNegated = true;
+    for ( const { hn, not, bad } of parser.getExtFilterDomainIterator() ) {
         if ( bad ) { continue; }
-        let kind = 0;
-        if ( exception ) {
-            if ( not ) { continue; }
-            kind |= 0b01;
+        let kind = isException ? 0b01 : 0b00;
+        if ( not ) {
+            kind ^= 0b01;
+        } else {
+            hasOnlyNegated = false;
         }
         if ( compiled.charCodeAt(0) === 0x7B /* '{' */ ) {
             kind |= 0b10;
         }
-        writer.push([ 64, hn, kind, compiled ]);
+        compiledFilters.push([ 64, hn, kind, compiled ]);
     }
+
+    // Not allowed since it's equivalent to forbidden generic HTML filters
+    if ( isException === false && hasOnlyNegated ) {
+        return logError(writer, `Invalid HTML filter in {who}: ##${raw}`);
+    }
+
+    writer.pushMany(compiledFilters);
 };
 
 htmlFilteringEngine.fromCompiledContent = function(reader) {
@@ -376,19 +386,13 @@ htmlFilteringEngine.retrieve = function(details) {
     const plains = new Set();
     const procedurals = new Set();
     const exceptions = new Set();
+    const retrieveSets = [ plains, exceptions, procedurals, exceptions ];
 
-    filterDB.retrieve(
-        hostname,
-        [ plains, exceptions, procedurals, exceptions ]
-    );
+    filterDB.retrieve(hostname, retrieveSets);
     const entity = details.entity !== ''
         ? `${hostname.slice(0, -details.domain.length)}${details.entity}`
         : '*';
-    filterDB.retrieve(
-        entity,
-        [ plains, exceptions, procedurals, exceptions ],
-        1
-    );
+    filterDB.retrieve(entity, retrieveSets, 1);
 
     if ( plains.size === 0 && procedurals.size === 0 ) { return; }
 

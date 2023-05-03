@@ -29,27 +29,26 @@
 // https://github.com/gorhill/uMatrix/issues/232
 //   Force `display` property, Firefox is still affected by the issue.
 
-(function() {
-    let noscripts = document.querySelectorAll('noscript');
+(( ) => {
+    const noscripts = document.querySelectorAll('noscript');
     if ( noscripts.length === 0 ) { return; }
 
-    let redirectTimer,
-        reMetaContent = /^\s*(\d+)\s*;\s*url=(['"]?)([^'"]+)\2/i,
-        reSafeURL = /^https?:\/\//;
+    const reMetaContent = /^\s*(\d+)\s*;\s*url=(?:"([^"]+)"|'([^']+)'|(.+))/i;
+    const reSafeURL = /^https?:\/\//;
+    let redirectTimer;
 
-    let autoRefresh = function(root) {
-        let meta = root.querySelector('meta[http-equiv="refresh"][content]');
+    const autoRefresh = function(root) {
+        const meta = root.querySelector('meta[http-equiv="refresh"][content]');
         if ( meta === null ) { return; }
-        let match = reMetaContent.exec(meta.getAttribute('content'));
-        if ( match === null || match[3].trim() === '' ) { return; }
-
+        const match = reMetaContent.exec(meta.getAttribute('content'));
+        if ( match === null ) { return; }
+        const refreshURL = (match[2] || match[3] || match[4] || '').trim();
         let url;
         try {
-            url = new URL(match[3], document.baseURI);
+            url = new URL(refreshURL, document.baseURI);
         } catch(ex) {
             return;
         }
-
         if ( reSafeURL.test(url.href) === false ) { return; }
         redirectTimer = setTimeout(( ) => {
                 location.assign(url.href);
@@ -59,26 +58,26 @@
         meta.parentNode.removeChild(meta);
     };
 
-    let morphNoscript = function(from) {
+    const morphNoscript = function(from) {
         if ( /^application\/(?:xhtml\+)?xml/.test(document.contentType) ) {
-            let to = document.createElement('span');
+            const to = document.createElement('span');
             while ( from.firstChild !== null ) {
                 to.appendChild(from.firstChild);
             }
             return to;
         }
-        let parser = new DOMParser();
-        let doc = parser.parseFromString(
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(
             '<span>' + from.textContent + '</span>',
             'text/html'
         );
         return document.adoptNode(doc.querySelector('span'));
     };
 
-    for ( let noscript of noscripts ) {
-        let parent = noscript.parentNode;
+    for ( const noscript of noscripts ) {
+        const parent = noscript.parentNode;
         if ( parent === null ) { continue; }
-        let span = morphNoscript(noscript);
+        const span = morphNoscript(noscript);
         span.style.setProperty('display', 'inline', 'important');
         if ( redirectTimer === undefined ) {
             autoRefresh(span);

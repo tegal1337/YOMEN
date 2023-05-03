@@ -52,7 +52,6 @@ let filteredLoggerEntryVoidedCount = 0;
 let popupLoggerBox;
 let popupLoggerTooltips;
 let activeTabId = 0;
-let filterAuthorMode = false;
 let selectedTabId = 0;
 let netInspectorPaused = false;
 let cnameOfEnabled = false;
@@ -78,30 +77,49 @@ const tabIdFromAttribute = function(elem) {
 
 const onStartMovingWidget = (( ) => {
     let widget = null;
+    let ondone = null;
     let mx0 = 0, my0 = 0;
     let mx1 = 0, my1 = 0;
-    let r0 = 0, t0 = 0;
-    let rMax = 0, tMax = 0;
+    let l0 = 0, t0 = 0;
+    let pw = 0, ph = 0;
+    let cw = 0, ch = 0;
     let timer;
+
+    const xyFromEvent = ev => {
+        if ( ev.type.startsWith('mouse') ) {
+            return { x: ev.pageX, y: ev.pageY };
+        }
+        const touch = ev.touches[0];
+        return  { x: touch.pageX, y: touch.pageY };
+    };
 
     const eatEvent = function(ev) {
         ev.stopPropagation();
+        if ( ev.touches !== undefined ) { return; }
         ev.preventDefault();
     };
 
     const move = ( ) => {
         timer = undefined;
-        const r1 = Math.min(Math.max(r0 - mx1 + mx0, 2), rMax);
-        const t1 = Math.min(Math.max(t0 - my0 + my1, 2), tMax);
-        widget.style.setProperty('right', `${r1}px`);
-        widget.style.setProperty('top', `${t1}px`);
+        const l1 = Math.min(Math.max(l0 + mx1 - mx0, 0), pw - cw);
+        if ( (l1+cw/2) < (pw/2) ) {
+            widget.style.left = `${l1/pw*100}%`;
+            widget.style.right = '';
+        } else {
+            widget.style.right = `${(pw-l1-cw)/pw*100}%`;
+            widget.style.left = '';
+        }
+        const t1 = Math.min(Math.max(t0 + my1 - my0, 0), ph - ch);
+        widget.style.top = `${t1/ph*100}%`;
+        widget.style.bottom = '';
     };
 
     const moveAsync = ev => {
         if ( timer !== undefined ) { return; }
-        mx1 = ev.pageX;
-        my1 = ev.pageY;
+        const coord = xyFromEvent(ev);
+        mx1 = coord.x; my1 = coord.y;
         timer = self.requestAnimationFrame(move);
+        eatEvent(ev);
     };
 
     const stop = ev => {
@@ -109,28 +127,36 @@ const onStartMovingWidget = (( ) => {
             self.cancelAnimationFrame(timer);
             timer = undefined;
         }
+        if ( widget === null ) { return; }
         if ( widget.classList.contains('moving') === false ) { return; }
         widget.classList.remove('moving');
         self.removeEventListener('mousemove', moveAsync, { capture: true });
+        self.removeEventListener('touchmove', moveAsync, { capture: true });
         eatEvent(ev);
         widget = null;
+        if ( ondone !== null ) {
+            ondone();
+            ondone = null;
+        }
     };
 
-    return function(target, ev) {
+    return function(ev, target, callback) {
         if ( dom.cl.has(target, 'moving') ) { return; }
         widget = target;
-        mx0 = ev.pageX;
-        my0 = ev.pageY;
-        const style = self.getComputedStyle(target);
-        r0 = parseInt(style.right, 10);
-        t0 = parseInt(style.top, 10);
-        const rect = widget.getBoundingClientRect();
+        ondone = callback || null;
+        const coord = xyFromEvent(ev);
+        mx0 = coord.x; my0 = coord.y;
         const widgetParent = widget.parentElement;
-        rMax = widgetParent.clientWidth - 2 - rect.width ;
-        tMax = widgetParent.clientHeight - 2 - rect.height;
+        const crect = widget.getBoundingClientRect();
+        const prect = widgetParent.getBoundingClientRect();
+        pw = prect.width; ph = prect.height;
+        cw = crect.width; ch = crect.height;
+        l0 = crect.x - prect.x; t0 = crect.y - prect.y;
         widget.classList.add('moving');
         self.addEventListener('mousemove', moveAsync, { capture: true });
         self.addEventListener('mouseup', stop, { capture: true, once: true });
+        self.addEventListener('touchmove', moveAsync, { capture: true });
+        self.addEventListener('touchend', stop, { capture: true, once: true });
         eatEvent(ev);
     };
 })();
@@ -226,7 +252,7 @@ const regexFromURLFilteringResult = function(result) {
 
 // Emphasize hostname in URL, as this is what matters in uMatrix's rules.
 
-const nodeFromURL = function(parent, url, re) {
+const nodeFromURL = function(parent, url, re, type) {
     const fragment = document.createDocumentFragment();
     if ( re === undefined ) {
         fragment.textContent = url;
@@ -255,7 +281,21 @@ const nodeFromURL = function(parent, url, re) {
     }
     if ( /^https?:\/\//.test(url) ) {
         const a = document.createElement('a');
-        dom.attr(a, 'href', url);
+        let href = url;
+        switch ( type ) {
+            case 'css':
+            case 'doc':
+            case 'frame':
+            case 'object':
+            case 'other':
+            case 'script':
+            case 'xhr':
+                href = `code-viewer.html?url=${encodeURIComponent(href)}`;
+                break;
+            default:
+                break;
+        }
+        dom.attr(a, 'href', href);
         dom.attr(a, 'target', '_blank');
         fragment.appendChild(a);
     }
@@ -527,8 +567,6 @@ const viewPort = (( ) => {
     let wholeHeight = 0;
     let lastTopPix = 0;
     let lastTopRow = 0;
-    let scrollTimer;
-    let resizeTimer;
 
     const ViewEntry = function() {
         this.div = document.createElement('div');
@@ -562,19 +600,10 @@ const viewPort = (( ) => {
     };
 
     // Coalesce scroll events
-    const onScroll = function() {
-        if ( scrollTimer !== undefined ) { return; }
-        scrollTimer = setTimeout(
-            ( ) => {
-                scrollTimer = requestAnimationFrame(( ) => {
-                    scrollTimer = undefined;
-                    onScrollChanged();
-                });
-            },
-            1000/32
-        );
+    const scrollTimer = vAPI.defer.create(onScrollChanged);
+    const onScroll = ( ) => {
+        scrollTimer.onvsync(1000/32);
     };
-
     dom.on(vwScroller, 'scroll', onScroll, { passive: true });
 
     const onLayoutChanged = function() {
@@ -681,19 +710,10 @@ const viewPort = (( ) => {
         updateContent(0);
     };
 
+    const resizeTimer = vAPI.defer.create(onLayoutChanged);
     const updateLayout = function() {
-        if ( resizeTimer !== undefined ) { return; }
-        resizeTimer = setTimeout(
-            ( ) => {
-                resizeTimer = requestAnimationFrame(( ) => {
-                    resizeTimer = undefined;
-                    onLayoutChanged();
-                });
-            },
-            1000/8
-        );
+        resizeTimer.onvsync(1000/8);
     };
-
     dom.on(window, 'resize', updateLayout, { passive: true });
 
     updateLayout();
@@ -835,7 +855,7 @@ const viewPort = (( ) => {
         } else if ( filteringType === 'dynamicUrl' ) {
             re = regexFromURLFilteringResult(filter.rule.join(' '));
         }
-        nodeFromURL(div.children[COLUMN_URL], cells[COLUMN_URL], re);
+        nodeFromURL(div.children[COLUMN_URL], cells[COLUMN_URL], re, cells[COLUMN_TYPE]);
 
         // Alias URL (CNAME, etc.)
         if ( cells.length > 8 ) {
@@ -1073,8 +1093,6 @@ const onLogBufferRead = function(response) {
         allTabIdsToken = response.tabIdsToken;
     }
 
-    filterAuthorMode = response.filterAuthorMode === true;
-
     if ( activeTabIdChanged ) {
         pageSelectorFromURLHash();
     }
@@ -1090,10 +1108,13 @@ const onLogBufferRead = function(response) {
 /******************************************************************************/
 
 const readLogBuffer = (( ) => {
-    let timer;
+    let reading = false;
 
     const readLogBufferNow = async function() {
         if ( logger.ownerId === undefined ) { return; }
+        if ( reading ) { return; }
+
+        reading = true;
 
         const msg = {
             what: 'readAll',
@@ -1121,20 +1142,20 @@ const readLogBuffer = (( ) => {
 
         const response = await vAPI.messaging.send('loggerUI', msg);
 
-        timer = undefined;
         onLogBufferRead(response);
-        readLogBufferLater();
+
+        reading = false;
+
+        timer.on(1200);
     };
 
-    const readLogBufferLater = function() {
-        if ( timer !== undefined ) { return; }
-        if ( logger.ownerId === undefined ) { return; }
-        timer = vAPI.setTimeout(readLogBufferNow, 1200);
-    };
+    const timer = vAPI.defer.create(readLogBufferNow);
 
     readLogBufferNow();
 
-    return readLogBufferLater;
+    return ( ) => {
+        timer.on(1200);
+    };
 })();
  
 /******************************************************************************/
@@ -1489,6 +1510,17 @@ dom.on(document, 'keydown', ev => {
                 tabId: targetTabId,
                 targetURL: 'img\t' + targetURLs[0],
                 select: true,
+            });
+            return;
+        }
+
+        // Reload tab associated with event
+        if ( tcl.contains('reload') ) {
+            ev.stopPropagation();
+            messaging.send('loggerUI', {
+                what: 'reloadTab',
+                tabId: targetTabId,
+                bypassCache: ev.ctrlKey || ev.metaKey || ev.shiftKey,
             });
             return;
         }
@@ -1925,6 +1957,22 @@ dom.on(document, 'keydown', ev => {
         parseStaticInputs();
     };
 
+    const moveDialog = ev => {
+        if ( ev.button !== 0 && ev.touches === undefined ) { return; }
+        const widget = qs$('#netInspector .entryTools');
+        onStartMovingWidget(ev, widget, ( ) => {
+            vAPI.localStorage.setItem(
+                'loggerUI.entryTools',
+                JSON.stringify({
+                    bottom: widget.style.bottom,
+                    left: widget.style.left,
+                    right: widget.style.right,
+                    top: widget.style.top,
+                })
+            );
+        });
+    };
+
     const fillDialog = function(domains) {
         dialog = dom.clone('#templates .netFilteringDialog');
         dom.cl.toggle(
@@ -1948,9 +1996,9 @@ dom.on(document, 'keydown', ev => {
         } else {
             container.append(dialog);
         }
-        dom.on(qs$(dialog, '.moveBand'), 'mousedown', ev => {
-            onStartMovingWidget(container, ev);
-        });
+        const moveBand = qs$(dialog, '.moveBand');
+        dom.on(moveBand, 'mousedown', moveDialog);
+        dom.on(moveBand, 'touchstart', moveDialog);
     };
 
     const toggleOn = async function(ev) {
@@ -1985,11 +2033,41 @@ dom.on(document, 'keydown', ev => {
         dialog = null;
     };
 
+    // Restore position of entry tools dialog
+    vAPI.localStorage.getItemAsync(
+        'loggerUI.entryTools',
+    ).then(response => {
+        if ( typeof response !== 'string' ) { return; }
+        const settings = JSON.parse(response);
+        const widget = qs$('#netInspector .entryTools');
+        widget.style.bottom = settings.bottom || '';
+        widget.style.left = settings.left || '';
+        widget.style.right = settings.right || '';
+        widget.style.top = settings.top || '';
+    });
+
     dom.on(
         '#netInspector',
         'click',
-        '.canDetails > span:nth-of-type(2),.canDetails > span:nth-of-type(3)',
+        '.canDetails > span:not(:nth-of-type(4)):not(:nth-of-type(8))',
         ev => { toggleOn(ev); }
+    );
+
+    dom.on(
+        '#netInspector',
+        'click',
+        '.logEntry > div > span:nth-of-type(8) a',
+        ev => {
+            vAPI.messaging.send('codeViewer', {
+                what: 'gotoURL',
+                details: {
+                    url: ev.target.getAttribute('href'),
+                    select: true,
+                },
+            });
+            ev.preventDefault();
+            ev.stopPropagation();
+        }
     );
 })();
 
@@ -2108,17 +2186,13 @@ const rowFilterer = (( ) => {
     };
 
     const onFilterChangedAsync = (( ) => {
-        let timer;
         const commit = ( ) => {
-            timer = undefined;
             parseInput();
             filterAll();
         };
+        const timer = vAPI.defer.create(commit);
         return ( ) => {
-            if ( timer !== undefined ) {
-                clearTimeout(timer);
-            }
-            timer = vAPI.setTimeout(commit, 750);
+            timer.offon(750);
         };
     })();
 
@@ -2195,7 +2269,7 @@ const rowJanitor = (( ) => {
 
     let rowIndex = 0;
 
-    const discard = function(timeRemaining) {
+    const discard = function(deadline) {
         const opts = loggerSettings.discard;
         const maxLoadCount = typeof opts.maxLoadCount === 'number'
             ? opts.maxLoadCount
@@ -2206,7 +2280,6 @@ const rowJanitor = (( ) => {
         const obsolete = typeof opts.maxAge === 'number'
             ? Date.now() - opts.maxAge * 60000
             : 0;
-        const deadline = Date.now() + Math.ceil(timeRemaining);
 
         let i = rowIndex;
         // TODO: below should not happen -- remove when confirmed.
@@ -2227,7 +2300,7 @@ const rowJanitor = (( ) => {
 
         while ( i < loggerEntries.length ) {
 
-            if ( i % 64 === 0 && Date.now() >= deadline ) { break; }
+            if ( i % 64 === 0 && deadline.timeRemaining() === 0 ) { break; }
 
             const entry = loggerEntries[i];
             const tabId = entry.tabId || 0;
@@ -2296,17 +2369,14 @@ const rowJanitor = (( ) => {
         rowFilterer.filterAll();
     };
 
-    const discardAsync = function() {
-        setTimeout(
-            ( ) => {
-                self.requestIdleCallback(deadline => {
-                    discard(deadline.timeRemaining());
-                    discardAsync();
-                });
-            },
-            1889
-        );
+    const discardAsync = function(deadline) {
+        if ( deadline ) {
+            discard(deadline);
+        }
+        janitorTimer.onidle(1889);
     };
+
+    const janitorTimer = vAPI.defer.create(discardAsync);
 
     // Clear voided entries from the logger's visible content.
     //
@@ -2935,15 +3005,14 @@ dom.on(window, 'hashchange', pageSelectorFromURLHash);
 // to the window geometry pontentially not settling fast enough.
 if ( self.location.search.includes('popup=1') ) {
     dom.on(window, 'load', ( ) => {
-        setTimeout(
-            ( ) => {
-                popupLoggerBox = {
-                    x: self.screenX,
-                    y: self.screenY,
-                    w: self.outerWidth,
-                    h: self.outerHeight,
-                };
-        }, 2000);
+        vAPI.defer.once(2000).then(( ) => {
+            popupLoggerBox = {
+                x: self.screenX,
+                y: self.screenY,
+                w: self.outerWidth,
+                h: self.outerHeight,
+            };
+        });
     }, { once: true });
 }
 

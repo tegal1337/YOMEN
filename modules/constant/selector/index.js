@@ -7,5 +7,5 @@ module.exports = {
     videoTitleinSearch : "#video-title",
     shortsTitleinSearch : "#details > a",
     catchErrorInComment : "#message > span",
-    inputComment : "#simplebox-placeholder",
+    inputComment : "div#placeholder-area",
 }

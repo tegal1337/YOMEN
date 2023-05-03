@@ -275,13 +275,13 @@
     "message": "バージョン",
     "description": "Example of use: Version 1.26.4"
   },
-  "popup3pScriptFilterTip": {
-    "message": "↑: サードパーティスクリプトを含む行を強調表示します",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party scripts' cell"
+  "popup3pScriptFilter": {
+    "message": "スクリプト",
+    "description": "Appears as an option to filter out firewall rows"
   },
-  "popup3pFrameFilterTip": {
-    "message": "↑: サードパーティフレームを含む行を強調表示します",
-    "description": "Tooltip shown when hovering small filtering widget in '3rd-party frames' cell"
+  "popup3pFrameFilter": {
+    "message": "フレーム",
+    "description": "Appears as an option to filter out firewall rows"
   },
   "pickerCreate": {
     "message": "作成",
@@ -1120,7 +1120,7 @@
     "description": "Used as a title for the document-blocked page"
   },
   "docblockedPrompt1": {
-    "message": "uBlock Origin は以下のページの読み込みを防ぎました:",
+    "message": "uBlock Origin は、 以下のサイトの読み込みを防止しました:",
     "description": "Used in the strict-blocking page"
   },
   "docblockedPrompt2": {
@@ -1144,7 +1144,7 @@
     "description": "English: Close this window"
   },
   "docblockedDontWarn": {
-    "message": "次回からこのサイトについて警告を表示しない",
+    "message": "今後このサイトに関する警告を表示しない",
     "description": "Label for checkbox in document-blocked page"
   },
   "docblockedProceed": {
@@ -1160,7 +1160,7 @@
     "description": "English: Permanently"
   },
   "docblockedDisable": {
-    "message": "続行",
+    "message": "続行する",
     "description": "Button text to navigate to the blocked page"
   },
   "cloudPush": {
@@ -1215,6 +1215,10 @@
     "message": "大きなメディア要素を一時的に許可",
     "description": "A context menu entry, present when large media elements have been blocked on the current site"
   },
+  "contextMenuViewSource": {
+    "message": "ソースを表示…",
+    "description": "A context menu entry, to view the source code of the target resource"
+  },
   "shortcutCapturePlaceholder": {
     "message": "ショートカットキーを入力",
     "description": "Placeholder string for input field used to capture a keyboard shortcut"
@@ -1258,6 +1262,14 @@
   "clickToLoad": {
     "message": "クリックして読み込む",
     "description": "Message used in frame placeholders"
+  },
+  "linterMainReport": {
+    "message": "エラー: {{count}}",
+    "description": "Summary of number of errors as reported by the linter "
+  },
+  "unprocessedRequestTooltip": {
+    "message": "ブラウザー起動時に正しくフィルターできませんでした。\nページを再読み込みしてください。",
+    "description": "Tooltip for the toolbar icon. Use newline character(s) where appropriate to prevent tooltip from being too long horizontally"
   },
   "dummy": {
     "message": "This entry must be the last one",

@@ -25,7 +25,8 @@
 
 /******************************************************************************/
 
-import { StaticFilteringParser } from '../static-filtering-parser.js';
+import * as sfp from '../static-filtering-parser.js';
+import { dom, qs$ } from '../dom.js';
 
 /******************************************************************************/
 
@@ -39,339 +40,215 @@ let hintHelperRegistered = false;
 /******************************************************************************/
 
 CodeMirror.defineMode('ubo-static-filtering', function() {
-    if ( StaticFilteringParser instanceof Object === false ) { return; }
-    const parser = new StaticFilteringParser({
+    const astParser = new sfp.AstFilterParser({
         interactive: true,
         nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
     });
+    const astWalker = astParser.getWalker();
+    let currentWalkerNode = 0;
+    let lastNetOptionType = 0;
 
-    const reURL = /\bhttps?:\/\/\S+/;
-    const rePreparseDirectives = /^!#(?:if|endif|include )\b/;
-    const rePreparseIfDirective = /^(!#if ?)(.*)$/;
-    let parserSlot = 0;
-    let netOptionValueMode = false;
-
-    const colorCommentSpan = function(stream) {
-        const { string, pos } = stream;
-        if ( rePreparseDirectives.test(string) === false ) {
-            const match = reURL.exec(string.slice(pos));
-            if ( match !== null ) {
-                if ( match.index === 0 ) {
-                    stream.pos += match[0].length;
-                    return 'comment link';
-                }
-                stream.pos += match.index;
-                return 'comment';
-            }
-            stream.skipToEnd();
-            return 'comment';
-        }
-        const match = rePreparseIfDirective.exec(string);
-        if ( match === null ) {
-            stream.skipToEnd();
-            return 'directive';
-        }
-        if ( pos < match[1].length ) {
-            stream.pos += match[1].length;
-            return 'directive';
-        }
-        stream.skipToEnd();
-        if ( match[1].endsWith(' ') === false ) {
-            return 'error strong';
-        }
-        if ( preparseDirectiveTokens.size === 0 ) {
-            return 'positive strong';
-        }
-        let token = match[2];
-        const not = token.startsWith('!');
-        if ( not ) {
-            token = token.slice(1);
-        }
-        if ( preparseDirectiveTokens.has(token) === false ) {
-            return 'error strong';
-        }
-        if ( not !== preparseDirectiveTokens.get(token) ) {
-            return 'positive strong';
-        }
-        return 'negative strong';
+    const redirectTokenStyle = node => {
+        const rawToken = astParser.getNodeString(node);
+        const { token } = sfp.parseRedirectValue(rawToken);
+        return redirectNames.has(token) ? 'value' : 'value warning';
     };
 
-    const colorExtHTMLPatternSpan = function(stream) {
-        const { i } = parser.patternSpan;
-        if ( stream.pos === parser.slices[i+1] ) {
-            stream.pos += 1;
-            return 'def';
-        }
-        stream.skipToEnd();
-        return 'variable';
-    };
-
-    const colorExtScriptletPatternSpan = function(stream) {
-        const { pos, string } = stream;
-        const { i, len } = parser.patternSpan;
-        const patternBeg = parser.slices[i+1];
-        if ( pos === patternBeg ) {
-            stream.pos = pos + 4;
-            return 'def';
-        }
-        if ( len > 3 ) {
-            if ( pos === patternBeg + 4 ) {
-                const match = /^[^,)]+/.exec(string.slice(pos));
-                const token = match && match[0].trim();
-                if ( token && scriptletNames.has(token) === false ) {
-                    stream.pos = pos + match[0].length;
-                    return 'warning';
-                }
-            }
-            const r = parser.slices[i+len+1] - 1;
-            if ( pos < r ) {
-                stream.pos = r;
-                return 'variable';
-            }
-            if ( pos === r ) {
-                stream.pos = pos + 1;
-                return 'def';
-            }
-        }
-        stream.skipToEnd();
-        return 'variable';
-    };
-
-    const colorExtPatternSpan = function(stream) {
-        if ( (parser.flavorBits & parser.BITFlavorExtScriptlet) !== 0 ) {
-            return colorExtScriptletPatternSpan(stream);
-        }
-        if ( (parser.flavorBits & parser.BITFlavorExtHTML) !== 0 ) {
-            return colorExtHTMLPatternSpan(stream);
-        }
-        stream.skipToEnd();
-        return 'variable';
-    };
-
-    const colorExtSpan = function(stream) {
-        if ( parserSlot < parser.optionsAnchorSpan.i ) {
-            const style = (parser.slices[parserSlot] & parser.BITComma) === 0
-                ? 'value'
-                : 'def';
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return style;
-        }
-        if (
-            parserSlot >= parser.optionsAnchorSpan.i &&
-            parserSlot < parser.patternSpan.i
-        ) {
-            const style = (parser.flavorBits & parser.BITFlavorException) !== 0
-                ? 'tag'
-                : 'def';
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return `${style} strong`;
-        }
-        if (
-            parserSlot >= parser.patternSpan.i &&
-            parserSlot < parser.rightSpaceSpan.i
-        ) {
-            return colorExtPatternSpan(stream);
-        }
-        stream.skipToEnd();
-        return null;
-    };
-
-    const colorNetOptionValueSpan = function(stream, bits) {
-        const { pos, string } = stream;
-        let style;
-        // Warn about unknown redirect tokens.
-        if (
-            string.charCodeAt(pos - 1) === 0x3D /* '=' */ &&
-            /[$,](redirect(-rule)?|rewrite)=$/.test(string.slice(0, pos))
-        ) {
-            style = 'value';
-            const end = parser.skipUntil(
-                parserSlot,
-                parser.commentSpan.i,
-                parser.BITComma
-            );
-            const raw = parser.strFromSlices(parserSlot, end - 3);
-            const { token } = StaticFilteringParser.parseRedirectValue(raw);
-            if ( redirectNames.has(token) === false ) {
-                style += ' warning';
-            }
-            stream.pos += raw.length;
-            parserSlot = end;
-            return style;
-        }
-        if ( (bits & parser.BITTilde) !== 0 ) {
-            style = 'keyword strong';
-        } else if ( (bits & parser.BITPipe) !== 0 ) {
-            style = 'def';
-        }
-        stream.pos += parser.slices[parserSlot+2];
-        parserSlot += 3;
-        return style || 'value';
-    };
-
-    // https://github.com/uBlockOrigin/uBlock-issues/issues/760#issuecomment-951146371
-    //   Quick fix: auto-escape commas.
-    const colorNetOptionSpan = function(stream) {
-        const [ slotBits, slotPos, slotLen ] =
-            parser.slices.slice(parserSlot, parserSlot+3);
-        if ( (slotBits & parser.BITComma) !== 0 ) {
-            if ( /^,\d*?\}/.test(parser.raw.slice(slotPos)) === false ) {
-                netOptionValueMode = false;
-                stream.pos += slotLen;
-                parserSlot += 3;
-                return 'def strong';
-            }
-        }
-        if ( netOptionValueMode ) {
-            return colorNetOptionValueSpan(stream, slotBits);
-        }
-        if ( (slotBits & parser.BITTilde) !== 0 ) {
-            stream.pos += slotLen;
-            parserSlot += 3;
-            return 'keyword strong';
-        }
-        if ( (slotBits & parser.BITEqual) !== 0 ) {
-            netOptionValueMode = true;
-            stream.pos += slotLen;
-            parserSlot += 3;
-            return 'def';
-        }
-        parserSlot = parser.skipUntil(
-            parserSlot,
-            parser.commentSpan.i,
-            parser.BITComma | parser.BITEqual
-        );
-        stream.pos = parser.slices[parserSlot+1];
-        return 'def';
-    };
-
-    const colorNetSpan = function(stream) {
-        if ( parserSlot < parser.exceptionSpan.i ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return null;
-        }
-        if (
-            parserSlot === parser.exceptionSpan.i &&
-            parser.exceptionSpan.len !== 0
-        ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return 'tag strong';
-        }
-        if (
-            parserSlot === parser.patternLeftAnchorSpan.i &&
-            parser.patternLeftAnchorSpan.len !== 0 ||
-            parserSlot === parser.patternRightAnchorSpan.i &&
-            parser.patternRightAnchorSpan.len !== 0
-        ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return 'keyword strong';
-        }
-        if (
-            parserSlot >= parser.patternSpan.i &&
-            parserSlot < parser.optionsAnchorSpan.i
-        ) {
-            if ( parser.patternIsRegex() ) {
-                stream.pos = parser.slices[parser.optionsAnchorSpan.i+1];
-                parserSlot = parser.optionsAnchorSpan.i;
-                return parser.patternIsTokenizable()
-                    ? 'variable notice'
-                    : 'variable warning';
-            }
-            if ( (parser.slices[parserSlot] & (parser.BITAsterisk | parser.BITCaret)) !== 0 ) {
-                stream.pos += parser.slices[parserSlot+2];
-                parserSlot += 3;
-                return 'keyword strong';
-            }
-            const nextSlot = parser.skipUntil(
-                parserSlot + 3,
-                parser.patternRightAnchorSpan.i,
-                parser.BITAsterisk | parser.BITCaret
-            );
-            stream.pos = parser.slices[nextSlot+1];
-            parserSlot = nextSlot;
-            return 'variable';
-        }
-        if (
-            parserSlot === parser.optionsAnchorSpan.i &&
-            parserSlot < parser.optionsSpan.i !== 0
-        ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return 'def strong';
-        }
-        if (
-            parserSlot >= parser.optionsSpan.i &&
-            parserSlot < parser.commentSpan.i
-        ) {
-            return colorNetOptionSpan(stream);
-        }
-        if (
-            parserSlot >= parser.commentSpan.i &&
-            parser.commentSpan.len !== 0
-        ) {
-            stream.skipToEnd();
-            return 'comment';
-        }
-        stream.skipToEnd();
-        return null;
-    };
-
-    const colorSpan = function(stream) {
-        if ( parser.category === parser.CATNone || parser.shouldIgnore() ) {
-            stream.skipToEnd();
-            return 'comment';
-        }
-        if ( parser.category === parser.CATComment ) {
-            return colorCommentSpan(stream);
-        }
-        if ( (parser.slices[parserSlot] & parser.BITError) !== 0 ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
+    const colorFromAstNode = function() {
+        if ( astParser.nodeIsEmptyString(currentWalkerNode) ) { return '+'; }
+        if ( astParser.getNodeFlags(currentWalkerNode, sfp.NODE_FLAG_ERROR) !== 0 ) {
             return 'error';
         }
-        if ( (parser.slices[parserSlot] & parser.BITIgnore) !== 0 ) {
-            stream.pos += parser.slices[parserSlot+2];
-            parserSlot += 3;
-            return 'comment';
-        }
-        if ( parser.category === parser.CATStaticExtFilter ) {
-            const style = colorExtSpan(stream) || '';
-            let flavor = '';
-            if ( (parser.flavorBits & parser.BITFlavorExtCosmetic) !== 0 ) {
-                flavor = 'line-cm-ext-dom';
-            } else if ( (parser.flavorBits & parser.BITFlavorExtScriptlet) !== 0 ) {
-                flavor = 'line-cm-ext-js';
-            } else if ( (parser.flavorBits & parser.BITFlavorExtHTML) !== 0 ) {
-                flavor = 'line-cm-ext-html';
+        const nodeType = astParser.getNodeType(currentWalkerNode);
+        switch ( nodeType ) {
+            case sfp.NODE_TYPE_WHITESPACE:
+                return '';
+            case sfp.NODE_TYPE_COMMENT:
+                if ( astWalker.canGoDown() ) { break; }
+                return 'comment';
+            case sfp.NODE_TYPE_COMMENT_URL:
+                return 'comment link';
+            case sfp.NODE_TYPE_IGNORE:
+                return 'comment';
+            case sfp.NODE_TYPE_PREPARSE_DIRECTIVE:
+            case sfp.NODE_TYPE_PREPARSE_DIRECTIVE_VALUE:
+                return 'directive';
+            case sfp.NODE_TYPE_PREPARSE_DIRECTIVE_IF_VALUE: {
+                if ( preparseDirectiveTokens.size === 0 ) {
+                    return 'positive strong';
+                }
+                const raw = astParser.getNodeString(currentWalkerNode);
+                const not = raw.startsWith('!');
+                const token = not ? raw.slice(1) : raw;
+                return not === preparseDirectiveTokens.get(token)
+                    ? 'negative strong'
+                    : 'positive strong';
             }
-            return `${flavor} ${style}`.trim();
+            case sfp.NODE_TYPE_EXT_OPTIONS_ANCHOR:
+                return astParser.getFlags(sfp.AST_FLAG_IS_EXCEPTION)
+                    ? 'tag strong'
+                    : 'def strong';
+            case sfp.NODE_TYPE_EXT_DECORATION:
+                return 'def';
+            case sfp.NODE_TYPE_EXT_PATTERN_RAW:
+                if ( astWalker.canGoDown() ) { break; }
+                return 'variable';
+            case sfp.NODE_TYPE_EXT_PATTERN_COSMETIC:
+            case sfp.NODE_TYPE_EXT_PATTERN_HTML:
+                return 'variable';
+            case sfp.NODE_TYPE_EXT_PATTERN_RESPONSEHEADER:
+            case sfp.NODE_TYPE_EXT_PATTERN_SCRIPTLET:
+                if ( astWalker.canGoDown() ) { break; }
+                return 'variable';
+            case sfp.NODE_TYPE_EXT_PATTERN_SCRIPTLET_TOKEN: {
+                const token = astParser.getNodeString(currentWalkerNode);
+                if ( scriptletNames.has(token) === false ) {
+                    return 'warning';
+                }
+                return 'variable';
+            }
+            case sfp.NODE_TYPE_EXT_PATTERN_SCRIPTLET_ARG:
+                return 'variable';
+            case sfp.NODE_TYPE_NET_EXCEPTION:
+                return 'tag strong';
+            case sfp.NODE_TYPE_NET_PATTERN:
+                if ( astWalker.canGoDown() ) { break; }
+                if ( astParser.isRegexPattern() ) {
+                    if ( astParser.getNodeFlags(currentWalkerNode, sfp.NODE_FLAG_PATTERN_UNTOKENIZABLE) !== 0 ) {
+                        return 'variable warning';
+                    }
+                    return 'variable notice';
+                }
+                return 'variable';
+            case sfp.NODE_TYPE_NET_PATTERN_PART:
+                return 'variable';
+            case sfp.NODE_TYPE_NET_PATTERN_PART_SPECIAL:
+                return 'keyword strong';
+            case sfp.NODE_TYPE_NET_PATTERN_PART_UNICODE:
+                return 'variable unicode';
+            case sfp.NODE_TYPE_NET_PATTERN_LEFT_HNANCHOR:
+            case sfp.NODE_TYPE_NET_PATTERN_LEFT_ANCHOR:
+            case sfp.NODE_TYPE_NET_PATTERN_RIGHT_ANCHOR:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_NOT:
+                return 'keyword strong';
+            case sfp.NODE_TYPE_NET_OPTIONS_ANCHOR:
+            case sfp.NODE_TYPE_NET_OPTION_SEPARATOR:
+                lastNetOptionType = 0;
+                return 'def strong';
+            case sfp.NODE_TYPE_NET_OPTION_NAME_UNKNOWN:
+                lastNetOptionType = 0;
+                return 'error';
+            case sfp.NODE_TYPE_NET_OPTION_NAME_1P:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_STRICT1P:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_3P:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_STRICT3P:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_ALL:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_BADFILTER:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_CNAME:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_CSP:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_CSS:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_DENYALLOW:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_DOC:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_EHIDE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_EMPTY:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_FONT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_FRAME:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_FROM:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_GENERICBLOCK:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_GHIDE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_HEADER:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_IMAGE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_IMPORTANT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_INLINEFONT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_INLINESCRIPT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_MATCHCASE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_MEDIA:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_METHOD:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_MP4:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_NOOP:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_OBJECT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_OTHER:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_PING:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_POPUNDER:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_POPUP:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_REDIRECT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_REDIRECTRULE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_REMOVEPARAM:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_SCRIPT:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_SHIDE:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_TO:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_XHR:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_WEBRTC:
+            case sfp.NODE_TYPE_NET_OPTION_NAME_WEBSOCKET:
+                lastNetOptionType = nodeType;
+                return 'def';
+            case sfp.NODE_TYPE_NET_OPTION_ASSIGN:
+                return 'def';
+            case sfp.NODE_TYPE_NET_OPTION_VALUE:
+                if ( astWalker.canGoDown() ) { break; }
+                switch ( lastNetOptionType ) {
+                    case sfp.NODE_TYPE_NET_OPTION_NAME_REDIRECT:
+                    case sfp.NODE_TYPE_NET_OPTION_NAME_REDIRECTRULE:
+                        return redirectTokenStyle(currentWalkerNode);
+                    default:
+                        break;
+                }
+                return 'value';
+            case sfp.NODE_TYPE_OPTION_VALUE_NOT:
+                return 'keyword strong';
+            case sfp.NODE_TYPE_OPTION_VALUE_DOMAIN:
+                return 'value';
+            case sfp.NODE_TYPE_OPTION_VALUE_SEPARATOR:
+                return 'def';
+            default:
+                break;
         }
-        if ( parser.category === parser.CATStaticNetFilter ) {
-            const style = colorNetSpan(stream);
-            return style ? `line-cm-net ${style}` : 'line-cm-net';
-        }
-        stream.skipToEnd();
-        return null;
+        return '+';
     };
 
     return {
         lineComment: '!',
         token: function(stream) {
-            let style = '';
             if ( stream.sol() ) {
-                parser.analyze(stream.string);
-                parser.analyzeExtra();
-                parserSlot = 0;
-                netOptionValueMode = false;
+                astParser.parse(stream.string);
+                if ( astParser.getFlags(sfp.AST_FLAG_UNSUPPORTED) !== 0 ) {
+                    stream.skipToEnd();
+                    return 'error';
+                }
+                if ( astParser.getType() === sfp.AST_TYPE_NONE ) {
+                    stream.skipToEnd();
+                    return 'comment';
+                }
+                currentWalkerNode = astWalker.reset();
+            } else {
+                currentWalkerNode = astWalker.next();
             }
-            style += colorSpan(stream) || '';
-            if ( (parser.flavorBits & parser.BITFlavorError) !== 0 ) {
-                style += ' line-background-error';
+            let style = '';
+            while ( currentWalkerNode !== 0 ) {
+                style = colorFromAstNode(stream);
+                if ( style !== '+' ) { break; }
+                currentWalkerNode = astWalker.next();
+            }
+            if ( style === '+' ) {
+                stream.skipToEnd();
+                return null;
+            }
+            stream.pos = astParser.getNodeStringEnd(currentWalkerNode);
+            if ( astParser.isNetworkFilter() ) {
+                return style ? `line-cm-net ${style}` : 'line-cm-net';
+            }
+            if ( astParser.isExtendedFilter() ) {
+                let flavor = '';
+                if ( astParser.isCosmeticFilter() ) {
+                    flavor = 'line-cm-ext-dom';
+                } else if ( astParser.isScriptletFilter() ) {
+                    flavor = 'line-cm-ext-js';
+                } else if ( astParser.isHtmlFilter() ) {
+                    flavor = 'line-cm-ext-html';
+                }
+                if ( flavor !== '' ) {
+                    style = `${flavor} ${style}`;
+                }
             }
             style = style.trim();
             return style !== '' ? style : null;
@@ -408,10 +285,9 @@ CodeMirror.defineMode('ubo-static-filtering', function() {
                 hintHelperRegistered = true;
                 initHints();
             }
+            astParser.options.filterOnHeaders = details.filterOnHeaders === true;
         },
-        get parser() {
-            return parser;
-        },
+        parser: astParser,
     };
 });
 
@@ -421,11 +297,12 @@ CodeMirror.defineMode('ubo-static-filtering', function() {
 //   https://codemirror.net/demo/complete.html
 
 const initHints = function() {
-    if ( StaticFilteringParser instanceof Object === false ) { return; }
-
-    const parser = new StaticFilteringParser();
+    const astParser = new sfp.AstFilterParser({
+        interactive: true,
+        nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
+    });
     const proceduralOperatorNames = new Map(
-        Array.from(parser.proceduralOperatorTokens)
+        Array.from(sfp.proceduralOperatorTokens)
              .filter(item => (item[1] & 0b01) !== 0)
     );
     const excludedHints = new Set([
@@ -560,16 +437,16 @@ const initHints = function() {
         }
         const assignPos = seedRight.indexOf('=');
         if ( assignPos !== -1 ) { seedRight = seedRight.slice(0, assignPos); }
-        const isException = parser.isException();
+        const isException = astParser.isException();
         const hints = [];
-        for ( let [ text, bits ] of parser.netOptionTokenDescriptors ) {
+        for ( let [ text, desc ] of sfp.netOptionTokenDescriptors ) {
             if ( excludedHints.has(text) ) { continue; }
-            if ( isNegated && (bits & parser.OPTCanNegate) === 0 ) { continue; }
+            if ( isNegated && desc.canNegate !== true ) { continue; }
             if ( isException ) {
-                if ( (bits & parser.OPTBlockOnly) !== 0 ) { continue; }
+                if ( desc.blockOnly ) { continue; }
             } else {
-                if ( (bits & parser.OPTAllowOnly) !== 0 ) { continue; }
-                if ( (assignPos === -1) && (bits & parser.OPTMustAssign) !== 0 ) {
+                if ( desc.allowOnly ) { continue; }
+                if ( (assignPos === -1) && desc.mustAssign ) {
                     text += '=';
                 }
             }
@@ -588,8 +465,11 @@ const initHints = function() {
     };
 
     const getNetHints = function(cursor, line) {
+        const patternNode = astParser.getBranchFromType(sfp.NODE_TYPE_NET_PATTERN_RAW);
+        if ( patternNode === 0 ) { return; }
+        const patternEnd = astParser.getNodeStringEnd(patternNode);
         const beg = cursor.ch;
-        if ( beg <= parser.slices[parser.optionsAnchorSpan.i+1] ) {
+        if ( beg <= patternEnd ) {
             return getNetPatternHints(cursor, line);
         }
         const lineBefore = line.slice(0, beg);
@@ -650,7 +530,7 @@ const initHints = function() {
         const matchRight = /^([^)]*)/.exec(line.slice(beg));
         if ( matchLeft === null || matchRight === null ) { return; }
         const hints = [];
-        for ( const hint of parser.removableHTTPHeaders ) {
+        for ( const hint of sfp.removableHTTPHeaders ) {
             hints.push(hint);
         }
         return pickBestHints(cursor, matchLeft[1], matchRight[1], hints);
@@ -697,29 +577,29 @@ const initHints = function() {
     CodeMirror.registerHelper('hint', 'ubo-static-filtering', function(cm) {
         const cursor = cm.getCursor();
         const line = cm.getLine(cursor.line);
-        parser.analyze(line);
-        if ( parser.category === parser.CATStaticExtFilter ) {
+        astParser.parse(line);
+        if ( astParser.isExtendedFilter() ) {
+            const anchorNode = astParser.getBranchFromType(sfp.NODE_TYPE_EXT_OPTIONS_ANCHOR);
+            if ( anchorNode === 0 ) { return; }
             let hints;
-            if ( cursor.ch <= parser.slices[parser.optionsAnchorSpan.i+1] ) {
+            if ( cursor.ch <= astParser.getNodeStringBeg(anchorNode) ) {
                 hints = getOriginHints(cursor, line);
-            } else if ( parser.hasFlavor(parser.BITFlavorExtScriptlet) ) {
+            } else if ( astParser.isScriptletFilter() ) {
                 hints = getExtScriptletHints(cursor, line);
-            } else if ( parser.hasFlavor(parser.BITFlavorExtResponseHeader) ) {
+            } else if ( astParser.isResponseheaderFilter() ) {
                 hints = getExtHeaderHints(cursor, line);
             } else {
                 hints = getExtSelectorHints(cursor, line);
             }
             return hints;
         }
-        if ( parser.category === parser.CATStaticNetFilter ) {
+        if ( astParser.isNetworkFilter() ) {
             return getNetHints(cursor, line);
         }
-        if ( parser.category === parser.CATComment ) {
+        if ( astParser.isComment() ) {
             return getCommentHints(cursor, line);
         }
-        if ( parser.category === parser.CATNone ) {
-            return getOriginHints(cursor, line);
-        }
+        return getOriginHints(cursor, line);
     });
 };
 
@@ -778,6 +658,344 @@ CodeMirror.registerHelper('fold', 'ubo-static-filtering', (( ) => {
         }
     };
 })());
+
+/******************************************************************************/
+
+// Linter
+
+{
+    const astParser = new sfp.AstFilterParser({
+        interactive: true,
+        nativeCssHas: vAPI.webextFlavor.env.includes('native_css_has'),
+    });
+
+    const changeset = [];
+    let changesetTimer;
+
+    const includeset = new Set();
+    let errorCount = 0;
+
+    const extractMarkerDetails = (doc, lineHandle) => {
+        if ( astParser.isUnsupported() ) {
+            return { value: 'error', msg: 'Unsupported filter syntax' };
+        }
+        if ( astParser.hasError() ) {
+            let msg = 'Invalid filter';
+            switch ( astParser.astError ) {
+                case sfp.AST_ERROR_UNSUPPORTED:
+                    msg = `${msg}: Unsupported filter syntax`;
+                    break;
+                case sfp.AST_ERROR_REGEX:
+                    msg = `${msg}: Bad regular expression`;
+                    break;
+                case sfp.AST_ERROR_PATTERN:
+                    msg = `${msg}: Bad pattern`;
+                    break;
+                case sfp.AST_ERROR_DOMAIN_NAME:
+                    msg = `${msg}: Bad domain name`;
+                    break;
+                case sfp.AST_ERROR_OPTION_DUPLICATE:
+                    msg = `${msg}: Duplicate filter option`;
+                    break;
+                case sfp.AST_ERROR_OPTION_UNKNOWN:
+                    msg = `${msg}: Unsupported filter option`;
+                    break;
+                case sfp.AST_ERROR_IF_TOKEN_UNKNOWN:
+                    msg = `${msg}: Unknown preparsing token`;
+                    break;
+                default:
+                    if ( astParser.isCosmeticFilter() && astParser.result.error ) {
+                        msg = `${msg}: ${astParser.result.error}`;
+                    }
+                    break;
+            }
+            return { value: 'error', msg };
+        }
+        if ( astParser.astType !== sfp.AST_TYPE_COMMENT ) { return; }
+        if ( astParser.astTypeFlavor !== sfp.AST_TYPE_COMMENT_PREPARSER ) {
+            if ( astParser.raw.startsWith('! <<<<<<<< ') === false ) { return; }
+            for ( const include of includeset ) {
+                if ( astParser.raw.endsWith(include) === false ) { continue; }
+                includeset.delete(include);
+                return { value: 'include-end' };
+            }
+            return;
+        }
+        if ( /^\s*!#if \S+/.test(astParser.raw) ) {
+            return { value: 'if-start' };
+        }
+        if ( /^\s*!#endif\b/.test(astParser.raw) ) {
+            return { value: 'if-end' };
+        }
+        const match = /^\s*!#include\s*(\S+)/.exec(astParser.raw);
+        if ( match === null ) { return; }
+        const nextLineHandle = doc.getLineHandle(lineHandle.lineNo() + 1);
+        if ( nextLineHandle === undefined ) { return; }
+        if ( nextLineHandle.text.startsWith('! >>>>>>>> ') === false ) { return; }
+        const includeToken = `/${match[1]}`;
+        if ( nextLineHandle.text.endsWith(includeToken) === false ) { return; }
+        includeset.add(includeToken);
+        return { value: 'include-start' };
+    };
+
+    const extractMarker = lineHandle => {
+        const markers = lineHandle.gutterMarkers || null;
+        return markers !== null
+            ? markers['CodeMirror-lintgutter'] || null
+            : null;
+    };
+
+    const markerTemplates = {
+        'error': {
+            node: null,
+            html: [
+                '<div class="CodeMirror-lintmarker" data-lint="error">&nbsp;',
+                  '<span class="msg"></span>',
+                '</div>',
+            ],
+        },
+        'if-start': {
+            node: null,
+            html: [
+                '<div class="CodeMirror-lintmarker" data-lint="if" data-fold="start">&nbsp;',
+                  '<svg viewBox="0 0 100 100">',
+                    '<polygon points="0,0 100,0 50,100" />',
+                  '</svg>',
+                '</div>',
+            ],
+        },
+        'if-end': {
+            node: null,
+            html: [
+                '<div class="CodeMirror-lintmarker" data-lint="if" data-fold="end">&nbsp;',
+                  '<svg viewBox="0 0 100 100">',
+                    '<polygon points="50,0 100,100 0,100" />',
+                  '</svg>',
+                '</div>',
+            ],
+        },
+        'include-start': {
+            node: null,
+            html: [
+                '<div class="CodeMirror-lintmarker" data-lint="include" data-fold="start">&nbsp;',
+                  '<svg viewBox="0 0 100 100">',
+                    '<polygon points="0,0 100,0 50,100" />',
+                  '</svg>',
+                '</div>',
+            ],
+        },
+        'include-end': {
+            node: null,
+            html: [
+                '<div class="CodeMirror-lintmarker" data-lint="include" data-fold="end">&nbsp;',
+                  '<svg viewBox="0 0 100 100">',
+                    '<polygon points="50,0 100,100 0,100" />',
+                  '</svg>',
+                '</div>',
+            ],
+        },
+    };
+
+    const markerFromTemplate = which => {
+        const template = markerTemplates[which];
+        if ( template.node === null ) {
+            const domParser = new DOMParser();
+            const doc = domParser.parseFromString(template.html.join(''), 'text/html');
+            template.node = document.adoptNode(qs$(doc, '.CodeMirror-lintmarker'));
+        }
+        return template.node.cloneNode(true);
+    };
+
+    const addMarker = (doc, lineHandle, marker, details) => {
+        if ( marker !== null && marker.dataset.lint !== details.value ) {
+            doc.setGutterMarker(lineHandle, 'CodeMirror-lintgutter', null);
+            if ( marker.dataset.lint === 'error' ) {
+                errorCount -= 1;
+            }
+            marker = null;
+        }
+        if ( marker === null ) {
+            marker = markerFromTemplate(details.value);
+            doc.setGutterMarker(lineHandle, 'CodeMirror-lintgutter', marker);
+            if ( details.value === 'error' ) {
+                errorCount += 1;
+            }
+        }
+        const msgElem = qs$(marker, '.msg');
+        if ( msgElem === null ) { return; }
+        msgElem.textContent = details.msg || '';
+    };
+
+    const removeMarker = (doc, lineHandle, marker) => {
+        doc.setGutterMarker(lineHandle, 'CodeMirror-lintgutter', null);
+        if ( marker.dataset.lint === 'error' ) {
+            errorCount -= 1;
+        }
+    };
+
+    const processDeletion = (doc, change) => {
+        let { from, to } = change;
+        doc.eachLine(from.line, to.line, lineHandle => {
+            const marker = extractMarker(lineHandle);
+            if ( marker === null ) { return; }
+            if ( marker.dataset.lint === 'error' ) {
+                errorCount -= 1;
+                marker.dataset.lint = 'void';
+            }
+        });
+    };
+
+    const processInsertion = (doc, deadline, change) => {
+        let { from, to } = change;
+        doc.eachLine(from, to, lineHandle => {
+            astParser.parse(lineHandle.text);
+            const markerDetails = extractMarkerDetails(doc, lineHandle);
+            const marker = extractMarker(lineHandle);
+            if ( markerDetails === undefined && marker !== null ) {
+                removeMarker(doc, lineHandle, marker);
+            } else if ( markerDetails !== undefined ) {
+                addMarker(doc, lineHandle, marker, markerDetails);
+            }
+            from += 1;
+            if ( (from & 0x0F) !== 0 ) { return; }
+            if ( deadline.timeRemaining() !== 0 ) { return; }
+            return true;
+        });
+        if ( from !== to ) {
+            return { from, to };
+        }
+    };
+
+    const processChangeset = (doc, deadline) => {
+        const cm = doc.getEditor();
+        cm.startOperation();
+        while ( changeset.length !== 0 ) {
+            const change = processInsertion(doc, deadline, changeset.shift());
+            if ( change === undefined ) { continue; }
+            changeset.unshift(change);
+            break;
+        }
+        cm.endOperation();
+        if ( changeset.length !== 0 ) {
+            return processChangesetAsync(doc);
+        }
+        includeset.clear();
+        CodeMirror.signal(doc.getEditor(), 'linterDone', { errorCount });
+    };
+
+    const processChangesetAsync = doc => {
+        if ( changesetTimer !== undefined ) { return; }
+        changesetTimer = self.requestIdleCallback(deadline => {
+            changesetTimer = undefined;
+            processChangeset(doc, deadline);
+        });
+    };
+
+    const onChanges = (cm, changes) => {
+        const doc = cm.getDoc();
+        for ( const change of changes ) {
+            const from = change.from.line;
+            const to = from + change.text.length;
+            changeset.push({ from, to });
+            processChangesetAsync(doc);
+        }
+    };
+
+    const onBeforeChanges = (cm, change) => {
+        const doc = cm.getDoc();
+        processDeletion(doc, change);
+    };
+
+    const foldRangeFinder = (cm, from) => {
+        const lineNo = from.line;
+        const lineHandle = cm.getDoc().getLineHandle(lineNo);
+        const marker = extractMarker(lineHandle);
+        if ( marker === null ) { return; }
+        if ( marker.dataset.fold === undefined ) { return; }
+        const foldName = marker.dataset.lint;
+        from.ch = lineHandle.text.length;
+        const to = { line: 0, ch: 0 };
+        const doc = cm.getDoc();
+        let depth = 0;
+        doc.eachLine(from.line, doc.lineCount(), lineHandle => {
+            const marker = extractMarker(lineHandle);
+            if ( marker === null ) { return; }
+            if ( marker.dataset.lint === foldName && marker.dataset.fold === 'start' ) {
+                depth += 1;
+                return;
+            }
+            if ( marker.dataset.lint !== foldName ) { return; }
+            if ( marker.dataset.fold !== 'end' ) { return; }
+            depth -= 1;
+            if ( depth !== 0 ) { return; }
+            to.line = lineHandle.lineNo();
+            return true;
+        });
+        return { from, to };
+    };
+
+    const onGutterClick = (cm, lineNo, gutterId, ev) => {
+        if ( ev.button !== 0 ) { return; }
+        if ( gutterId !== 'CodeMirror-lintgutter' ) { return; }
+        const doc = cm.getDoc();
+        const lineHandle = doc.getLineHandle(lineNo);
+        const marker = extractMarker(lineHandle);
+        if ( marker === null ) { return; }
+        if ( marker.dataset.fold === 'start' ) {
+            if ( ev.ctrlKey ) {
+                if ( dom.cl.has(marker, 'folded') ) {
+                    CodeMirror.commands.unfoldAll(cm);
+                } else {
+                    CodeMirror.commands.foldAll(cm);
+                }
+                doc.setCursor(lineNo);
+                return;
+            }
+            cm.foldCode(lineNo, {
+                widget: '\u00A0\u22EF\u00A0',
+                rangeFinder: foldRangeFinder,
+            });
+            return;
+        }
+        if ( marker.dataset.fold === 'end' ) {
+            let depth = 1;
+            let lineNo = lineHandle.lineNo();
+            while ( lineNo-- ) {
+                const prevLineHandle = doc.getLineHandle(lineNo);
+                const markerFrom = extractMarker(prevLineHandle);
+                if ( markerFrom === null ) { continue; }
+                if ( markerFrom.dataset.fold === 'end' ) {
+                    depth += 1;
+                } else if ( markerFrom.dataset.fold === 'start' ) {
+                    depth -= 1;
+                    if ( depth === 0 ) {
+                        doc.setCursor(lineNo);
+                        break;
+                    }
+                }
+            }
+            return;
+        }
+    };
+
+    CodeMirror.defineInitHook(cm => {
+        cm.on('changes', onChanges);
+        cm.on('beforeChange', onBeforeChanges);
+        cm.on('gutterClick', onGutterClick);
+        cm.on('fold', function(cm, from) {
+            const doc = cm.getDoc();
+            const lineHandle = doc.getLineHandle(from.line);
+            const marker = extractMarker(lineHandle);
+            dom.cl.add(marker, 'folded');
+        });
+        cm.on('unfold', function(cm, from) {
+            const doc = cm.getDoc();
+            const lineHandle = doc.getLineHandle(from.line);
+            const marker = extractMarker(lineHandle);
+            dom.cl.remove(marker, 'folded');
+        });
+    });
+}
 
 /******************************************************************************/
 
