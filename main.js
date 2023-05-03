@@ -129,21 +129,31 @@ async function startApp(config, browserconfig)
       }
       else
       {
-         await page.goto(
-            `https://www.youtube.com/results?search_query=${keyword[i]}`,
-         );
-         const element = await page.$(selector.shortvideos,
-         );
-         if (element)
-         {
-            await page.evaluate(() =>
-            {
-               document
-                  .querySelector(selector.shortvideos)
-                  .remove();
-            });
-         }
-         await autoscroll._autoScroll(page);
+		if (config.newVideos == true)
+      {
+          await page.goto(
+				`https://www.youtube.com/results?search_query=${keyword[i]}&sp=CAI%253D`,
+			 );
+      }
+      else
+      {
+			 await page.goto(
+				`https://www.youtube.com/results?search_query=${keyword[i]}`,
+			 );
+	   }
+		 const element = await page.$(selector.shortvideos,
+		 );
+		 if (element)
+		 {
+			await page.evaluate(() =>
+			{
+			   document
+				  .querySelector(selector.shortvideos)
+				  .remove();
+			});
+		 }
+		 await autoscroll._autoScroll(page);
+  
       }
 
       await page.waitForTimeout(3000);

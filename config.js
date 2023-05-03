@@ -5,6 +5,7 @@ module.exports = {
   passwordgoogle: "your password",
   delaycomment: 60, // delay ( per second )
   trending: true,//false
+  newVideos: false,//false
   copycomment:false, // false if you want use comment above , i mean from array
   userdatadir : "fdciabdul",
   ai : true, // true if you want to use OPEN AI (CHAT-GPT) auto comment
