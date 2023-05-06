@@ -196,9 +196,9 @@ async function startApp(config, browserconfig)
          color: 'yellow',
       });
 
-      for (i in link)
+      for (let j = 0; j < link.length; j++)
       {
-         if (readLog().includes(link[i]))
+         if (readLog().includes(link[j]))
          {
             spinners.add('already',
             {
@@ -212,8 +212,8 @@ async function startApp(config, browserconfig)
             text: 'Now commenting in the video..',
             color: 'yellow',
          });
-         const tweet = link[i].url;
-         const title = link[i].title;
+         const tweet = link[j].url;
+         const title = link[j].title;
          const pages = await browser.newPage();
          await pages.setViewport(
          {
