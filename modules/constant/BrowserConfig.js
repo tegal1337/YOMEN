@@ -1,5 +1,5 @@
 module.exports = {
-  Config: function (paths, config , executablePath ){
+  Config: function (paths, config , executablePath ,userDataDir){
     let data = {
       defaultViewport: null,
       // devtools: true,
@@ -23,9 +23,10 @@ module.exports = {
         `--disable-extensions-except=${paths}`,
         `--load-extension=${paths}`,
       ],
-
-      userDataDir: config.userdatadir,
     };
+    if (userDataDir) {
+      data.userDataDir = userDataDir;
+    }
     if (executablePath) {
       data.executablePath = executablePath;
     }

@@ -77,7 +77,7 @@ async function startApp(config, browserconfig) {
         });
         await page.waitForSelector(selector.showpass);
         // await page.click(selector.showpass , {delay :1000});
-        await wait(5);
+        await page.waitForTimeout(2000);
         await page.type(selector.password, config.passwordgoogle, {
             delay: 400
         });
@@ -211,7 +211,7 @@ async function startApp(config, browserconfig) {
                         console.log(" Check Your Configuration")
                     }
                     spinners.add('delay', {
-                        text: `We will wait for ${delay / 1000} seconds`,
+                        text: `We will wait for ${delay} seconds`,
                         color: 'yellow',
                     });
             
@@ -242,7 +242,7 @@ async function startApp(config, browserconfig) {
     });
     await browser.close();
 }
-startApp(config, Config(paths, config, executablePath("chrome")));
+startApp(config, Config(paths, config, executablePath("chrome") , config.userdatadir));
 
 function readLog() {
     const data = fs.readFileSync('./logs/succesCommenting.log', 'utf8');
