@@ -1,13 +1,12 @@
 module.exports = {
   keywords: ["national geographic", "pass"],
   comments: ["hello","let's be a friend","subs to subs ahaha"],
-  usernamegoogle: "chanmenme2",
-  passwordgoogle: "calang1414",
-  delaycomment: 60, // delay ( per second )
-  trending: true,//false
-  newVideos: true,//false
-  copycomment:true, // false if you want use comment above , i mean from array
-  userdatadir : "fdciabdul",
-  ai : false, // true if you want to use OPEN AI (CHAT-GPT) auto comment
-  apiKey : "",
+  usernamegoogle: "username_google/email_google",
+  passwordgoogle: "password_google",
+  trending: true, // set true if you want comment on trending videos or false if you want comment on search videos
+  newVideos: true, // set true if you want comment on new videos or false if you want comment on top videos
+  copycomment:true,  // set tru if you want copy comment from array or false if you want random comment
+  userdatadir : "fdciabdul",  // set your userdatadir
+  ai : false,  //set true if you want use ai comment or false if you want use random comment or copy comment
+  apiKey : "",  // set your api key from 
 };
