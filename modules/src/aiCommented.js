@@ -10,7 +10,7 @@
  */
 const { Configuration, OpenAIApi } = require("openai");
 
-const createComments = async (pages, spinners, title, config) => {
+const createComments = async (pages, spinners, info, config) => {
   try {
     const configuration = new Configuration({
       apiKey: config.apiKey,
@@ -18,7 +18,13 @@ const createComments = async (pages, spinners, title, config) => {
 
     const openai = new OpenAIApi(configuration);
 
-    const prompt = `Human: simulate reply to video "${title}" with natural text\nBot: `;
+    const prompt = `simulate reply to this youtube video from channel ${info.channelName} with title "${info.title}" with natural emotion , 
+     not like a bot , 
+     dont act like you are suprised , 
+     dont use wow
+
+     please remind that he was have subscriber ${info.subscriberCount}  ,
+     \n: `;
 
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",

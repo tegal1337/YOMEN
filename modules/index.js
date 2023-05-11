@@ -11,4 +11,5 @@ module.exports = {
     Logger : require("./src/Logger"),
     Banner : require("./src/bannerMain"),
     aiCommented : require("./src/aiCommented"),
+    getInfo : require("./src/getChannelInfo"),
 }

@@ -23,6 +23,7 @@ const {
     autoscroll,
     likeVideos,
     Logger,
+    getInfo,
     aiCommented,
     Banner
 } = require('./modules');
@@ -204,7 +205,9 @@ async function startApp(config, browserconfig) {
                     if (config.copycomment && config.ai == false) {
                         await copycommnet.copyComment(pages, spinners, config);
                     } else if (config.ai) {
-                        await aiCommented.createComments(pages, spinners, title, config)
+                     const info = await getInfo.extractChannelInfo(pages);
+                  //   console.log(info);
+                        await aiCommented.createComments(pages, spinners, info, config)
                     } else if (!config.copycomment && !config.ai) {
                         await manualComment.manualComment(pages, spinners, config);
                     } else {
