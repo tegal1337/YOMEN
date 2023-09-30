@@ -7,6 +7,6 @@ module.exports = {
   newVideos: false, // set true if you want comment on new videos or false if you want comment on top videos
   copycomment:true,  // set tru if you want copy comment from array or false if you want random comment
   userdatadir : "fdciabdul",  // set your userdatadir
-  ai : true,  //set true if you want use ai comment or false if you want use random comment or copy comment
+  ai : false,  //set true if you want use ai comment or false if you want use random comment or copy comment
   apiKey : "",  // set your api key from 
 };

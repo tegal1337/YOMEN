@@ -13,9 +13,9 @@
     "ip": "^1.1.8",
     "karma-chrome-launcher": "^3.1.1",
     "openai": "^3.2.1",
-    "puppeteer": "^19.6.3",
-    "puppeteer-extra": "^3.1.18",
-    "puppeteer-extra-plugin-stealth": "^2.7.8",
+    "puppeteer": "^20.7.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "queue": "^6.0.2",
     "spinnies": "^0.5.1",
     "tmp": "^0.2.1"

@@ -14,7 +14,7 @@ module.exports = {
     await page.evaluate(() => {
       document
         .querySelector(
-          "#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button > yt-formatted-string"
+          "#subscribe-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill"
         )
         .click();
     });

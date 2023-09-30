@@ -15,7 +15,7 @@ module.exports = {
           .evaluate(() => {
             document
               .querySelector(
-                ".ytd-menu-renderer:nth-child(1) > .ytd-toggle-button-renderer > #button > #button > .style-scope"
+                "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill"
               )
               .click();
           })
