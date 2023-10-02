@@ -27,7 +27,9 @@ const {
   aiCommented,
   Banner,
 } = require('./modules');
+const { uBlockOriginDownloader } = require('./modules/src/AdblockerUpdate');
 const config = require('./config');
+
 
 const spinners = new Spinners(cliSpinners.star.frames, {
   text: 'Loading',
@@ -37,6 +39,7 @@ const spinners = new Spinners(cliSpinners.star.frames, {
   },
 });
 puppeteer.use(StealthPlugin);
+
 const paths = `${process.cwd()}/ublock`;
 const delay = (Math.floor(Math.random() * 60) + 60) * 1000;
 StealthPlugin.enabledEvasions.delete('iframe.contentWindow');
@@ -45,17 +48,14 @@ console.log(Banner.show);
 async function startApp(config, browserconfig) {
   const keyword = config.keywords;
 
-  const context = await puppeteer.launch(browserconfig);
-   const browser = await context.createIncognitoBrowserContext();
+
+   const browser = await puppeteer.launch(browserconfig);
   const page = await browser.newPage();
-  await page.setBypassCSP(true);
   await page.setViewport({
     width: 1366,
     height: 768,
   });
-  await page.evaluateOnNewDocument(() => {
-    delete navigator.__proto__.webdriver;
-  });
+
   await page.setUserAgent(randomUserAgent.UA());
   await page.goto('https://accounts.google.com/signin/v2/identifier?service=youtube', {
     waituntil: 'domcontentloaded',
@@ -80,8 +80,7 @@ async function startApp(config, browserconfig) {
     await page.waitForNavigation({
       waituntil: 'domcontentloaded',
     });
-    await page.waitForSelector(selector.showpass);
-    // await page.click(selector.showpass , {delay :1000});
+ 
     await page.waitForTimeout(2000);
     await page.type(selector.password, config.passwordgoogle, {
       delay: 400,
@@ -90,6 +89,20 @@ async function startApp(config, browserconfig) {
     await page.waitForNavigation({
       waituntil: 'domcontentloaded',
     });
+    const twoStepVerificationElement = await page.evaluate(() => {
+      const headings = document.querySelectorAll('h1.oO8pQe');
+      for (let heading of headings) {
+          if (heading.textContent === "2-Step Verification") {
+              return true;
+          }
+      }
+      return false;
+  });
+
+  if (twoStepVerificationElement) {
+      console.log("I need to 2-step verification");
+  }
+
   }
   console.log('=========== Start Commenting ==============');
   try {
@@ -222,8 +235,8 @@ async function startApp(config, browserconfig) {
             text: 'While delaying .. we actin like human to scroll comment',
             color: 'yellow',
           });
-       //   await autoscroll._autoScroll(pages);
-
+         await autoscroll._autoScroll(pages);
+          await page.waitForTimeout(delay);
           await pages.close();
           spinners.succeed('comment', {
             text: 'Success commenting',
@@ -244,9 +257,20 @@ async function startApp(config, browserconfig) {
   });
   await browser.close();
 }
-startApp(config, Config(paths, config, executablePath('chrome'), config.userdatadir));
 
 function readLog() {
   const data = fs.readFileSync('./logs/succesCommenting.log', 'utf8');
   return data;
+}
+
+if (!fs.existsSync('./ublock')) {
+  uBlockOriginDownloader().then((success) => {
+    if(success) {
+      startApp(config, Config(paths, config, executablePath('chrome'), config.userdatadir));
+    } else {
+      console.log("Error downloading and extracting uBlock Origin.");
+    }
+  });
+} else {
+  startApp(config, Config(paths, config, executablePath('chrome'), config.userdatadir));
 }

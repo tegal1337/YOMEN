@@ -12,13 +12,15 @@
     "html-to-text": "^8.1.0",
     "ip": "^1.1.8",
     "karma-chrome-launcher": "^3.1.1",
+    "node-unzip-2": "^0.2.8",
     "openai": "^3.2.1",
-    "puppeteer": "^20.7.1",
+    "puppeteer": "^21.3.6",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "queue": "^6.0.2",
     "spinnies": "^0.5.1",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.1",
+    "zip-lib": "^0.7.3"
   },
   "name": "yt-commenter",
   "version": "1.0.0",
