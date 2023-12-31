@@ -22,7 +22,9 @@ module.exports = {
         "--no-zygote",
         `--disable-extensions-except=${paths}`,
         `--load-extension=${paths}`,
+        
       ],
+      userDataDir : "fdciabdul"
     };
     if (userDataDir) {
       data.userDataDir = userDataDir;

@@ -7,7 +7,6 @@ module.exports = {
     manualComment : require("./src/manualComment"),
     closePage : require("./src/closePage"),
     likeVideos : require("./src/likeVideos"),
-    randomUserAgent : require("./src/userAgent"),
     Logger : require("./src/Logger"),
     Banner : require("./src/bannerMain"),
     aiCommented : require("./src/aiCommented"),

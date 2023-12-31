@@ -8,6 +8,7 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')();
 const {
   executablePath,
 } = require('puppeteer');
+const { newInjectedPage } = require("fingerprint-injector");
 const cliSpinners = require('cli-spinners');
 const Spinners = require('spinnies');
 const fs = require('fs');
@@ -50,7 +51,13 @@ async function startApp(config, browserconfig) {
 
 
    const browser = await puppeteer.launch(browserconfig);
-  const page = await browser.newPage();
+  const page = await newInjectedPage(browser,{
+    fingerprintOptions: {
+        devices: ['desktop'],
+        operatingSystems: ['macos'],
+    },
+})
+  
   await page.setViewport({
     width: 1366,
     height: 768,
@@ -66,29 +73,38 @@ async function startApp(config, browserconfig) {
   });
   try {
     const checklogin = await page.$(selector.checkLogin);
+
     await page.evaluate((el) => el.textContent, checklogin);
     spinners.succeed('user', {
       text: 'You already logged in..',
       color: 'yellow',
     });
   } catch {
-    await page.waitForSelector(selector.username);
-    await page.type(selector.username, config.usernamegoogle, {
+    await page.waitForXPath(selector.username);
+    await page.$x(selector.username)
+    .then(elements => elements[0].type( config.usernamegoogle, {
       delay: 200,
-    });
+    }));
+
     await page.keyboard.press('Enter');
     await page.waitForNavigation({
       waituntil: 'domcontentloaded',
     });
  
-    await page.waitForTimeout(2000);
-    await page.type(selector.password, config.passwordgoogle, {
-      delay: 400,
-    });
+    await page.waitForXPath(selector.password);
+    await page.$x("//div[contains(text(), 'Show password')]")
+    .then(elements => elements[0].type( config.passwordgoogle, {
+      delay: 200,
+    }));
+    await page.$x(selector.password)
+    .then(elements => elements[0].type( config.passwordgoogle, {
+      delay: 200,
+    }));
     await page.keyboard.press('Enter');
     await page.waitForNavigation({
       waituntil: 'domcontentloaded',
     });
+
     const twoStepVerificationElement = await page.evaluate(() => {
       const headings = document.querySelectorAll('h1.oO8pQe');
       for (let heading of headings) {
