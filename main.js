@@ -63,7 +63,6 @@ async function startApp(config, browserconfig) {
     height: 768,
   });
 
-  await page.setUserAgent(randomUserAgent.UA());
   await page.goto('https://accounts.google.com/signin/v2/identifier?service=youtube', {
     waituntil: 'domcontentloaded',
   });
@@ -93,9 +92,7 @@ async function startApp(config, browserconfig) {
  
     await page.waitForXPath(selector.password);
     await page.$x("//div[contains(text(), 'Show password')]")
-    .then(elements => elements[0].type( config.passwordgoogle, {
-      delay: 200,
-    }));
+    .then(elements => elements[0].click());
     await page.$x(selector.password)
     .then(elements => elements[0].type( config.passwordgoogle, {
       delay: 200,
@@ -196,7 +193,6 @@ async function startApp(config, browserconfig) {
         width: 1366,
         height: 768,
       });
-      await pages.setUserAgent(randomUserAgent.UA());
       try {
         if (tweet.includes('shorts')) {
           await pages.goto(tweet.replace(/shorts/, 'watch'));
