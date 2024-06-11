@@ -2,22 +2,15 @@
  * Created By : Abdul Muttaqin
  * Email : abdulmuttaqin456@gmail.com
  */
-// ######################################### //
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')();
-const {
-  executablePath,
-} = require('puppeteer');
+const puppeteer = require('puppeteer');
+const { executablePath } = require('puppeteer');
 const { newInjectedPage } = require("fingerprint-injector");
 const cliSpinners = require('cli-spinners');
 const Spinners = require('spinnies');
 const fs = require('fs');
 const selector = require('./modules/constant/selector');
+const { Config } = require('./modules/constant/BrowserConfig');
 const {
-  Config,
-} = require('./modules/constant/BrowserConfig');
-const {
-  randomUserAgent,
   subsribe,
   copycommnet,
   manualComment,
@@ -31,115 +24,83 @@ const {
 const { uBlockOriginDownloader } = require('./modules/src/AdblockerUpdate');
 const config = require('./config');
 
+const paths = `${process.cwd()}/ublock`;
 
 const spinners = new Spinners(cliSpinners.star.frames, {
   text: 'Loading',
   stream: process.stdout,
-  onTick(frame, index) {
+  onTick(frame) {
     process.stdout.write(frame);
   },
 });
-puppeteer.use(StealthPlugin);
 
-const paths = `${process.cwd()}/ublock`;
-const delay = (Math.floor(Math.random() * 60) + 60) * 1000;
-StealthPlugin.enabledEvasions.delete('iframe.contentWindow');
-['chrome.runtime', 'navigator.languages'].forEach((a) => StealthPlugin.enabledEvasions.delete(a));
+const delay = (time) => new Promise(resolve => setTimeout(resolve, time));
+
 console.log(Banner.show);
-async function startApp(config, browserconfig) {
-  const keyword = config.keywords;
 
-
-   const browser = await puppeteer.launch(browserconfig);
-  const page = await newInjectedPage(browser,{
+async function startApp(config, browserConfig) {
+  const keywords = config.keywords;
+  const browser = await puppeteer.launch(browserConfig);
+  const page = await newInjectedPage(browser, {
     fingerprintOptions: {
-        devices: ['desktop'],
-        operatingSystems: ['macos'],
+      devices: ['desktop'],
+      operatingSystems: ['windows'],
     },
-})
-  
-  await page.setViewport({
-    width: 1366,
-    height: 768,
   });
 
-  await page.goto('https://accounts.google.com/signin/v2/identifier?service=youtube', {
-    waituntil: 'domcontentloaded',
-  });
-  spinners.add('user', {
-    text: 'Login..',
-    color: 'green',
-  });
+  await page.setViewport({ width: 1366, height: 768 });
+  await page.goto('https://accounts.google.com/signin/v2/identifier?service=youtube', { waitUntil: 'domcontentloaded' });
+
+  spinners.add('user', { text: 'Login..', color: 'green' });
+
   try {
-    const checklogin = await page.$(selector.checkLogin);
-
-    await page.evaluate((el) => el.textContent, checklogin);
-    spinners.succeed('user', {
-      text: 'You already logged in..',
-      color: 'yellow',
-    });
+    const checkLogin = await page.$(selector.checkLogin);
+    await page.evaluate(el => el.textContent, checkLogin);
+    spinners.succeed('user', { text: 'You already logged in..', color: 'yellow' });
   } catch {
     await page.waitForXPath(selector.username);
-    await page.$x(selector.username)
-    .then(elements => elements[0].type( config.usernamegoogle, {
-      delay: 200,
-    }));
+    const usernameElement = await page.$x(selector.username);
+    await usernameElement[0].type(config.usernamegoogle, { delay: 200 });
+    await page.keyboard.press('Enter');
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-    await page.keyboard.press('Enter');
-    await page.waitForNavigation({
-      waituntil: 'domcontentloaded',
-    });
- 
     await page.waitForXPath(selector.password);
-    await page.$x("//div[contains(text(), 'Show password')]")
-    .then(elements => elements[0].click());
-    await page.$x(selector.password)
-    .then(elements => elements[0].type( config.passwordgoogle, {
-      delay: 200,
-    }));
+    const showPasswordElement = await page.$x("//div[contains(text(), 'Show password')]");
+    for (const element of showPasswordElement) {
+      await element.click();
+    }
+    const passwordElement = await page.$x(selector.password);
+    await passwordElement[0].type(config.passwordgoogle, { delay: 200 });
     await page.keyboard.press('Enter');
-    await page.waitForNavigation({
-      waituntil: 'domcontentloaded',
-    });
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
     const twoStepVerificationElement = await page.evaluate(() => {
       const headings = document.querySelectorAll('h1.oO8pQe');
-      for (let heading of headings) {
-          if (heading.textContent === "2-Step Verification") {
-              return true;
-          }
-      }
-      return false;
-  });
+      return Array.from(headings).some(heading => heading.textContent === "2-Step Verification");
+    });
 
-  if (twoStepVerificationElement) {
+    if (twoStepVerificationElement) {
       console.log("I need to 2-step verification");
+    }
   }
 
-  }
   console.log('=========== Start Commenting ==============');
+
   try {
     await subsribe.subscribeChannel(page);
-  } catch (error) {
-    spinners.add('sub', {
-      text: 'Thank you <3',
-      color: 'green',
-    });
+  } catch {
+    spinners.add('sub', { text: 'Thank you <3', color: 'green' });
   }
-  spinners.add('first-spinner', {
-    text: 'Searching for videos..',
-    color: 'yellow',
-  });
-  for (let i = 0; i < keyword.length; i++) {
-    if (config.trending == true) {
+
+  spinners.add('first-spinner', { text: 'Searching for videos..', color: 'yellow' });
+
+  for (const keyword of keywords) {
+    if (config.trending) {
       await page.goto('https://www.youtube.com/feed/trending');
       await autoscroll._autoScroll(page);
     } else {
-      if (config.newVideos == true) {
-        await page.goto(`https://www.youtube.com/results?search_query=${keyword[i]}&sp=CAI%253D`);
-      } else {
-        await page.goto(`https://www.youtube.com/results?search_query=${keyword[i]}`);
-      }
+      const searchQuery = config.newVideos ? `${keyword}&sp=CAI%253D` : keyword;
+      await page.goto(`https://www.youtube.com/results?search_query=${searchQuery}`);
       const element = await page.$(selector.shortvideos);
       if (element) {
         await page.evaluate(() => {
@@ -148,136 +109,100 @@ async function startApp(config, browserconfig) {
       }
       await autoscroll._autoScroll(page);
     }
-    await page.waitForTimeout(3000);
-    spinners.succeed('first-spinner', {
-      text: 'done..',
-      color: 'yellow',
-    });
-    await page.waitForTimeout(7000);
-    spinners.add('hasil', {
-      text: 'Collecting videos..',
-      color: 'yellow',
-    });
-    // collecting links
-    const linked = await Promise.all((await page.$$(selector.videoTitleinSearch)).map(async (a) => ({
+
+    await delay(3000);
+    spinners.succeed('first-spinner', { text: 'done..', color: 'yellow' });
+
+    await delay(7000);
+    spinners.add('hasil', { text: 'Collecting videos..', color: 'yellow' });
+
+    const linked = await Promise.all((await page.$$(selector.videoTitleinSearch)).map(async a => ({
       url: await (await a.getProperty('href')).jsonValue(),
       title: await (await a.getProperty('title')).jsonValue(),
     })));
-    const hrefs = await Promise.all((await page.$$(selector.shortsTitleinSearch)).map(async (a) => await (await a.getProperty('href')).jsonValue()));
-    if (hrefs.length === 0) {
-      linked.push(hrefs);
+    const hrefs = await Promise.all((await page.$$(selector.shortsTitleinSearch)).map(async a => await (await a.getProperty('href')).jsonValue()));
+    if (hrefs.length > 0) {
+      linked.push(...hrefs.map(url => ({ url })));
     }
-    const linkz = linked.filter((el) => el.url != null);
-    spinners.succeed('hasil', {
-      text: `FOUND ${linkz.length}LINKS`,
-      color: 'yellow',
-    });
-    // randomize links
-    const link = linkz.sort(() => Math.random() - Math.random()).slice(0, linkz.length);
-    for (let j = 0; j < link.length; j++) {
-      if (readLog().includes(link[j])) {
-        spinners.add('already', {
-          text: 'The video has been commented..',
-          color: 'blue',
-        });
+    const linkz = linked.filter(el => el.url != null);
+    spinners.succeed('hasil', { text: `FOUND ${linkz.length} LINKS`, color: 'yellow' });
+
+    const shuffledLinks = linkz.sort(() => Math.random() - Math.random());
+
+    for (const { url: tweet, title } of shuffledLinks) {
+      if (readLog().includes(tweet)) {
+        spinners.add('already', { text: 'The video has been commented..', color: 'blue' });
         continue;
       }
-      spinners.add('comment', {
-        text: 'Now commenting in the video..',
-        color: 'yellow',
-      });
-      const tweet = link[j].url;
-      const { title } = link[j];
+
+      spinners.add('comment', { text: 'Now commenting on the video..', color: 'yellow' });
+
       const pages = await browser.newPage();
-      await pages.setViewport({
-        width: 1366,
-        height: 768,
-      });
+      await pages.setViewport({ width: 1366, height: 768 });
+
       try {
-        if (tweet.includes('shorts')) {
-          await pages.goto(tweet.replace(/shorts/, 'watch'));
-        } else {
-          // console.log(tweet);
-          await pages.goto(tweet);
-        }
+        await pages.goto(tweet.includes('shorts') ? tweet.replace(/shorts/, 'watch') : tweet);
+
         try {
           await likeVideos.likeVideos(pages);
         } catch (error) {
           console.log(error);
         }
+
         await pages.bringToFront();
-        await pages.waitForTimeout(4000);
-        await pages.evaluate(() => {
-          window.scrollBy(0, 550);
-        });
+        await delay(4000);
+        await pages.evaluate(() => { window.scrollBy(0, 550); });
+
         try {
-          await pages.waitForSelector(selector.catchErrorInComment, {
-            timeout: 4000,
-          });
+          await pages.waitForSelector(selector.catchErrorInComment, { timeout: 4000 });
           console.log("Can't Comment");
           await pages.close();
         } catch {
-          await pages.waitForSelector(selector.inputComment, {
-            timeout: 4000,
-          });
-          await pages.evaluate(() => {
-            document.querySelector('div#placeholder-area').click();
-          });
-          spinners.update('comment', {
-            text: 'So.. we need collecting those comment , so we can copy that ',
-            color: 'yellow',
-          });
-          if (config.copycomment && config.ai == false) {
+          await pages.waitForSelector(selector.inputComment, { timeout: 4000 });
+          await pages.evaluate(() => { document.querySelector('div#placeholder-area').click(); });
+
+          spinners.update('comment', { text: 'Collecting comments for copying...', color: 'yellow' });
+
+          if (config.copycomment && !config.ai) {
             await copycommnet.copyComment(pages, spinners, config);
           } else if (config.ai) {
             const info = await getInfo.extractChannelInfo(pages);
-            //   console.log(info);
             await aiCommented.createComments(pages, spinners, info, config);
           } else if (!config.copycomment && !config.ai) {
             await manualComment.manualComment(pages, spinners, config);
           } else {
-            console.log(' Check Your Configuration');
+            console.log('Check Your Configuration');
           }
-          spinners.add('delay', {
-            text: `We will wait for ${delay} seconds`,
-            color: 'yellow',
-          });
 
-          spinners.add('act', {
-            text: 'While delaying .. we actin like human to scroll comment',
-            color: 'yellow',
-          });
-         await autoscroll._autoScroll(pages);
-          await page.waitForTimeout(delay);
+          const delayTime = (Math.floor(Math.random() * 60) + 60) * 1000;
+          spinners.add('delay', { text: `Waiting for ${delayTime / 1000} seconds`, color: 'yellow' });
+
+          spinners.add('act', { text: 'Scrolling comments to simulate human activity', color: 'yellow' });
+          await autoscroll._autoScroll(pages);
+          await delay(delayTime);
           await pages.close();
-          spinners.succeed('comment', {
-            text: 'Success commenting',
-            color: 'yellow',
-          });
+
+          spinners.succeed('comment', { text: 'Success commenting', color: 'yellow' });
           Logger.log('./logs/succesCommenting.log', config.usernamegoogle, tweet, 'success');
         }
       } catch (e) {
         console.log(e);
-        //   await pages.close();
         Logger.log('./logs/errorCommenting.log', config.usernamegoogle, tweet, 'failed', e);
       }
     }
   }
-  spinners.add('done', {
-    text: 'WE ARE DONE , THANKS FOR USING THIS APP <3',
-    color: 'green',
-  });
+
+  spinners.add('done', { text: 'WE ARE DONE, THANKS FOR USING THIS APP <3', color: 'green' });
   await browser.close();
 }
 
 function readLog() {
-  const data = fs.readFileSync('./logs/succesCommenting.log', 'utf8');
-  return data;
+  return fs.readFileSync('./logs/succesCommenting.log', 'utf8');
 }
 
 if (!fs.existsSync('./ublock')) {
-  uBlockOriginDownloader().then((success) => {
-    if(success) {
+  uBlockOriginDownloader().then(success => {
+    if (success) {
       startApp(config, Config(paths, config, executablePath('chrome'), config.userdatadir));
     } else {
       console.log("Error downloading and extracting uBlock Origin.");

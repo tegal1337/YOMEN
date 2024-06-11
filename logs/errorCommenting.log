@@ -1,3 +1,0 @@
-
-[2:29:30 AM] | User: taqin2731 | Link: https://www.youtube.com/watch?v=i45ot8pp9xw | Status: failed | Error: ReferenceError: delay is not defined
-[5:38:01 AM] | User: taqin2731 | Link: https://www.youtube.com/watch?v=DCd5S-iWFCg&t=73s | Status: failed | Error: TargetCloseError: Waiting for selector `div#placeholder-area` failed: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.

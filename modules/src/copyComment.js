@@ -6,10 +6,10 @@ module.exports = {
     await pages.evaluate(() => {
       window.scrollBy(0, window.innerHeight * 2);
     });
-    await pages.waitForSelector("yt-formatted-string[id='content-text']", {
+    await pages.waitForSelector("yt-attributed-string[id='content-text']", {
       visible: true,
     });
-    let comments = await pages.$$("yt-formatted-string[id='content-text']");
+    let comments = await pages.$$("yt-attributed-string[id='content-text']");
 
     for (let j of comments) {
       let comment = await pages.evaluate(function (ele) {
@@ -25,7 +25,6 @@ module.exports = {
     await pages.evaluate(() => {
       window.scrollBy(0, -window.innerHeight * 2);
     });
-
     await pages.waitForTimeout(1000);
     var komenan =
       totalComments[Math.floor(Math.random() * totalComments.length)];
