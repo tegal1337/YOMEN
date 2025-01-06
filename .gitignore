@@ -5,3 +5,4 @@ config.js
 ublock
 succesCommenting.log
 errorCommenting.log
+package-lock.json
