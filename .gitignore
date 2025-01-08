@@ -6,3 +6,6 @@ ublock
 succesCommenting.log
 errorCommenting.log
 package-lock.json
+bin
+tmp
+.env

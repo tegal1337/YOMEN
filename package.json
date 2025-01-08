@@ -1,10 +1,13 @@
 {
   "dependencies": {
     "axios": "^0.27.2",
+    "chalk": "5.4.1",
     "cheerio": "^1.0.0-rc.12",
     "cli-spinners": "^2.6.1",
     "date-format": "^4.0.13",
+    "dotenv": "^16.4.7",
     "karma-chrome-launcher": "^3.1.1",
+    "module-alias": "^2.2.3",
     "node-unzip-2": "^0.2.8",
     "openai": "^3.2.1",
     "puppeteer": "^23.11.1",
@@ -16,13 +19,13 @@
   "name": "yt-commenter",
   "version": "1.0.0",
   "description": "Auto Comment Youtube Videos",
-  "main": "main.js",
+  "main": "index.ts",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js"
+    "start": "bun src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -35,6 +38,13 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/tegal1337/Youtube-Auto-Commenter/issues"
+  },
+  "_moduleAliases": {
+    "#lib/*": "src/lib/",
+    "#src/*": "src/",
+    "#test/*": "test/",
+    "#utils/*": "src/utils/",
+    "#config/*": "src/config/"
   },
   "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme",
   "devDependencies": {
