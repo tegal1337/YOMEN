@@ -1,6 +1,5 @@
 
 
-https://github.com/user-attachments/assets/6e057c2f-e633-4a72-ad51-c0c2e26dcc2e
   <p align="center">
   <image src="https://github.com/user-attachments/assets/6e057c2f-e633-4a72-ad51-c0c2e26dcc2e" align="center"/>
 <h1 align="center"> Youtube Auto Commenter </h1>
@@ -19,8 +18,17 @@ $ cd YOMEN
 $ bun start
 ```
 
+# Feature
 
+- Skip already commented video
+- Local Database
+- Bypass detected Bot
 
+- Search Option
+  - Filter by Popular, Newest, or Relevant
+
+- Comment Options
+  - Copy Comments, Direct manual from Comment, Load Comments from CSV
 
            
 
