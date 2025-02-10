@@ -20,7 +20,10 @@ export class LaunchBrowser {
      */
     async init(): Promise<void> {
         const driverPath = path.resolve("driver");
-
+        const sessionDir = path.resolve(`session/${this.username}`);
+        if (!fs.existsSync(sessionDir)) {
+            fs.mkdirSync(sessionDir, { recursive: true });
+        }
         // Check if driver folder exists and is not empty
         if (!fs.existsSync(driverPath) || fs.readdirSync(driverPath).length === 0) {
             throw new Error("The 'driver' folder is empty or does not exist. Please ensure the necessary files are present.");

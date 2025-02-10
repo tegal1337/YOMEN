@@ -69,7 +69,7 @@ export default class Downloader {
 
             // Ensure the output directory exists
             if (!fs.existsSync(outputDir)) {
-                fs.mkdirSync(outputDir);
+                fs.mkdirSync(outputDir,{ recursive: true });
             }
 
             // Unzip using unzipper
