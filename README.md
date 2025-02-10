@@ -7,7 +7,20 @@
 Youtube Bot Auto Commenter Using Puppeter and NodeJS
     </p>
     
-New Version is developing ~
+# Requerements
+
+-  Node 18+ / Bun Latest Version (bun is strongly recommended)
+- Windows ( Currently this only support windows only for now)
+#  Installation 
+
+```bash
+$ git clone https://github.com/tegal1337/YOMEN
+$ cd YOMEN
+$ bun start
+```
+
+
+
 
            
 

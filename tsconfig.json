@@ -10,6 +10,8 @@
             "#utils/*": ["utils/*"],
             "#types/*": ["types/*"],
             "#config/*": ["config/*"],
+            "#insideheartz/*": ["lib/Bot*"],
+            "#database/*": ["database/*"],
 
         },
         "outDir": "./dist",

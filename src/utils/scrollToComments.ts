@@ -4,7 +4,7 @@ export default async function scrollToComment(page) {
         await new Promise<void>((resolve) => {
             let attempts = 0;
             const maxAttempts = 10; // Max scrolling attempts
-            const interval = 500; // Time between scrolls in ms
+            const interval = 1500; // Time between scrolls in ms
 
             const timer = setInterval(() => {
                 window.scrollBy(0, window.innerHeight); // Scroll down by one screen height
