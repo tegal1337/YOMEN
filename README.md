@@ -32,3 +32,5 @@ $ bun start
 
            
 
+# Author
+- @taqin (https://imtaqin.id)
