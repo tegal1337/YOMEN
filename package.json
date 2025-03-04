@@ -11,6 +11,7 @@
     "dotenv": "^16.4.7",
     "got": "^14.4.5",
     "inquirer": "12.3.0",
+    "mkdirp": "3.0.1",
     "module-alias": "^2.2.3",
     "node-notifier": "^10.0.1",
     "node-unzip-2": "^0.2.8",

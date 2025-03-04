@@ -3,7 +3,7 @@ import path from "path";
 import UndetectableBrowser from "undetected-browser";
 import puppeteer, { Browser, Page } from "puppeteer";
 import { setEnv } from "#config/index";
-
+import mkdirp from 'mkdirp'; 
 export class LaunchBrowser {
     public browser: Browser | null;
     public page: Page | null;
@@ -21,10 +21,8 @@ export class LaunchBrowser {
     async init(): Promise<void> {
         const driverPath = path.resolve("driver");
         const sessionDir = path.resolve(`session/${this.username}`);
-        if (!fs.existsSync(sessionDir)) {
-            fs.mkdirSync(sessionDir, { recursive: true });
-        }
-        // Check if driver folder exists and is not empty
+        await mkdirp(sessionDir);
+  
         if (!fs.existsSync(driverPath) || fs.readdirSync(driverPath).length === 0) {
             throw new Error("The 'driver' folder is empty or does not exist. Please ensure the necessary files are present.");
         }
