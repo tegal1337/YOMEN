@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import cliProgress from 'cli-progress';
 import unzipper from 'unzipper';  // Import unzipper for extracting zip files
 import path from 'path';
-import mkdirp from 'mkdirp';
+import { mkdirp } from 'mkdirp';
 
 const streamPipeline = promisify(pipeline);
 

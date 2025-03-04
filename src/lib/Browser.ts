@@ -3,7 +3,7 @@ import path from "path";
 import UndetectableBrowser from "undetected-browser";
 import puppeteer, { Browser, Page } from "puppeteer";
 import { setEnv } from "#config/index";
-import mkdirp from 'mkdirp'; 
+import { mkdirp } from 'mkdirp';
 export class LaunchBrowser {
     public browser: Browser | null;
     public page: Page | null;

@@ -1,5 +1,5 @@
 require('module-alias/register');
 require('ts-node').register({
-    project: './tsconfig.json', // Optional, specify the tsconfig if needed
+    project: './tsconfig.json',
 });
-require('./src/index.ts'); // Replace 'main.ts' with the path to your main TypeScript file
+require('./src/index.ts'); 
