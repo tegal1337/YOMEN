@@ -12,7 +12,7 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
 # Requerements
 
 - Node 18+ / Bun Latest Version (bun is strongly recommended)
-- Windows ( Currently this only support windows only for now)
+- Windows ( Currently this only support windows for now)
 
 #  Installation 
 
