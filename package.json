@@ -19,6 +19,7 @@
     "sql.js": "^1.12.0",
     "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.3",
     "undetected-browser": "^2.0.4",
     "unzipper": "^0.12.3",
@@ -33,7 +34,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "bun src/index.ts"
+    "start": "tsx src/index.ts"
   },
   "repository": {
     "type": "git",
