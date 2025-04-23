@@ -2875,7 +2875,7 @@ sql.js@^1.12.0:
   resolved "https://registry.npmjs.org/sql.js/-/sql.js-1.12.0.tgz"
   integrity sha512-Bi+43yMx/tUFZVYD4AUscmdL6NHn3gYQ+CM+YheFWLftOmrEC/Mz6Yh7E96Y2WDHYz3COSqT+LP6Z79zgrwJlA==
 
-sqlite3@^5.1.7:
+sqlite3@^5.0.2, sqlite3@^5.1.7:
   version "5.1.7"
   resolved "https://registry.npmjs.org/sqlite3/-/sqlite3-5.1.7.tgz"
   integrity sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==

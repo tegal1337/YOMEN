@@ -11,7 +11,7 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
     
 # Requerements
 
-- Node 18+ / Bun Latest Version (bun is strongly recommended)
+- Node 18+
 - Windows ( Currently this only support windows for now)
 
 #  Installation 
@@ -19,11 +19,20 @@ Youtube Bot Auto Commenter Using Puppeter and NodeJS
 ```bash
 $ git clone https://github.com/tegal1337/YOMEN
 $ cd YOMEN
-$ bun start
+$ npm install
+$ npm start
 ```
 Note : 
+
 make `.env` like .env.example and fill the username and password google
 
+
+# FAQ
+
+- Fix Error Folder Session is missing
+- Make sure you open Command Prompt with Administrator Privilidge
+
+- Or simply double Click `RUN.bat`
 
 # Feature
 
@@ -37,6 +46,30 @@ make `.env` like .env.example and fill the username and password google
 - Comment Options
 - Copy Comments, Direct manual from Comment, Load Comments from CSV
 
+
+# I Also made Private Version which included more full features
+
+- 🔁 Auto Copy Comments from YouTube
+
+- ✍️ Manual Comment Support
+
+- 🤖 AI-Generated Comments (Optional)
+
+- 📨 Auto Reply to Comments
+
+- 🔍 Search Videos by Keyword
+
+- 📄 Import Accounts / Videos / Comments via CSV
+
+- 🔐 Undetected System (Safe with Normal Use)
+
+- 💬 Supports YouTube Live Chat
+
+- 🕒 Set Comment Delay & Limit
+
+- 👥 Multi-Account Support
+
+- 🛠️ Simple Terminal-Based Interface
 
 # Request Feature?
 
