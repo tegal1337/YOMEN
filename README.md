@@ -71,6 +71,9 @@ make `.env` like .env.example and fill the username and password google
 
 - 🛠️ Simple Terminal-Based Interface
 
+
+you can buy in here : https://p-store.net/insideheartz/jual-script-youtube-auto-comment-full-fitur-bot-comment-Lvm5yH
+
 # Request Feature?
 
 - you can contact me through telegram { @imtaqin}
