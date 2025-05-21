@@ -1,3 +1,4 @@
+# Ignore folders and files
 fdciabdul/
 node_modules/
 tes.js
@@ -6,11 +7,18 @@ ublock
 succesCommenting.log
 errorCommenting.log
 package-lock.json
-bin
-tmp
+bin/
+tmp/
 .env
 database.sqlite
 bun.lockb
-/bun.lockb
-/package-lock.json
-/tmp
+bin.zip
+.github
+
+# Ignore everything inside driver except __init__
+/driver/*
+!/driver/__init__
+
+# Ignore everything inside session except __init__
+/session/*
+!/session/__init__

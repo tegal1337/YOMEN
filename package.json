@@ -55,7 +55,8 @@
     "#config/*": "src/config/",
     "#database/*": "src/database/",
     "#insideheartz/*": "src/lib/Bot/",
-    "#types/*": "src/types/"
+    "#types/*": "src/types/",
+    "#constants/*": "src/constants/"
   },
   "homepage": "https://github.com/tegal1337/Youtube-Auto-Commenter#readme",
   "devDependencies": {

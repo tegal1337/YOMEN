@@ -93,20 +93,15 @@ async function getVideoUrls(yomen: YOMEN, preferences: SearchPreferences): Promi
         return await yomen.getTrendingVideos();
     } else if (preferences.keyword) {
         Logger.info(`Searching for keyword: ${preferences.keyword}`);
-        return await yomen.searchKeyword({ keyword: preferences.keyword }, preferences.sortBy);
+        return await yomen.searchKeyword(preferences.keyword, preferences.sortBy);
     }
     return [];
 }
 
 async function ensureDriverExists(): Promise<void> {
     const zipFilePath = './bin.zip';
-    const driverFolderPath = './driver';
     
-    if (fs.existsSync(driverFolderPath) && fs.readdirSync(driverFolderPath).length > 0) {
-        Logger.info('Driver files already exist. Skipping download.');
-        return;
-    }
-    
+
     const downloader = new Downloader(zipFilePath);
     
     if (fs.existsSync(zipFilePath)) {
@@ -145,6 +140,12 @@ async function main(): Promise<void> {
  
 async function init(): Promise<void> {
     try {
+        const user = getEnv('USERNAME');
+        const password = getEnv('PASSWORD');
+        if (!user || !password) {
+            Logger.error('Please set the USERNAME and PASSWORD environment variables. \nExample: USERNAME_GOOGLE=your_google_username_or_email PASSWORD_GOOGLE=your_password');
+            process.exit(1);
+        }
         initialize();
         await ensureDriverExists();
         await main();

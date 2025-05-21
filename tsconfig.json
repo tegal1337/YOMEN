@@ -12,6 +12,7 @@
             "#config/*": ["config/*"],
             "#insideheartz/*": ["lib/Bot*"],
             "#database/*": ["database/*"],
+            "#constants/*": ["constants/*"],
 
         },
         "outDir": "./dist",
