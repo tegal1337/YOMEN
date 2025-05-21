@@ -13,7 +13,6 @@
     "inquirer": "12.3.0",
     "mkdirp": "3.0.1",
     "module-alias": "^2.2.3",
-    "node-notifier": "^10.0.1",
     "node-unzip-2": "^0.2.8",
     "puppeteer": "^23.11.1",
     "sql.js": "^1.12.0",

@@ -15,3 +15,12 @@ export interface Comment {
 export interface searchParam {
   keyword: string;
 }
+
+export interface SearchPreferences {
+  searchType: 'keyword' | 'trending';
+  keyword?: string;
+  sortBy?: 'date' | 'viewCount' | 'relevance';
+  commentType: 'ai' | 'copy' | 'manual';
+  manualCommentType?: 'csv' | 'direct';
+  comment?: string;
+}

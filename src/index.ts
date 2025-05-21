@@ -6,14 +6,14 @@ import { banner } from '#utils/banner';
 import { randomDelay } from '#utils/randomDelay';
 import inquirer from 'inquirer';
 import { getEnv } from './config';
-
 import { initialize } from 'models';
 import Downloader from '#utils/net';
 import fs from 'fs';
 import path from 'path';
 import YOMEN from '#lib/Bot/YoutubeBot';
+import { SearchPreferences } from '#types/index';
 
-async function getSearchPreferences() {
+async function getSearchPreferences(): Promise<SearchPreferences> {
     return inquirer.prompt([
         {
             type: 'list',
@@ -72,8 +72,53 @@ async function getSearchPreferences() {
     ]);
 }
 
-// Update your main function
-async function main() {
+async function processVideos(yomen: YOMEN, urls: string[], preferences: SearchPreferences): Promise<void> {
+    for (const url of urls) {
+        Logger.info(`Navigating to video: ${url}`);
+        
+        const commentType = preferences.commentType;
+        if (commentType === 'manual' && preferences.manualCommentType === 'direct') {
+            await yomen.goToVideo(url, 'direct', preferences.comment);
+        } else {
+            const mode = commentType === 'manual' ? preferences.manualCommentType : commentType;
+            await yomen.goToVideo(url, mode);
+        }
+        
+        await randomDelay(5000, 10000);
+    }
+}
+
+async function getVideoUrls(yomen: YOMEN, preferences: SearchPreferences): Promise<string[]> {
+    if (preferences.searchType === 'trending') {
+        return await yomen.getTrendingVideos();
+    } else if (preferences.keyword) {
+        Logger.info(`Searching for keyword: ${preferences.keyword}`);
+        return await yomen.searchKeyword({ keyword: preferences.keyword }, preferences.sortBy);
+    }
+    return [];
+}
+
+async function ensureDriverExists(): Promise<void> {
+    const zipFilePath = './bin.zip';
+    const driverFolderPath = './driver';
+    
+    if (fs.existsSync(driverFolderPath) && fs.readdirSync(driverFolderPath).length > 0) {
+        Logger.info('Driver files already exist. Skipping download.');
+        return;
+    }
+    
+    const downloader = new Downloader(zipFilePath);
+    
+    if (fs.existsSync(zipFilePath)) {
+        Logger.info('Zip file already exists. Skipping download.');
+        await downloader.unzipFile();
+    } else {
+        Logger.info('Downloading driver files...');
+        await downloader.downloadFromUrl();
+    }
+}
+
+async function main(): Promise<void> {
     Logger.divider();
     Logger.banner(banner);
     Logger.divider();
@@ -82,67 +127,31 @@ async function main() {
     const browser = new LaunchBrowser(getEnv('USERNAME'));
     await browser.init();
 
-    const pages = await browser.page;
-    const login = new LoginYoutube(pages);
-    if(!login) await login.login();
+    const page = await browser.page;
+    const login = new LoginYoutube(page);
+    await login.login();
    
-    const yomen = new YOMEN(pages);
-
-    let urls: string[];
-    if (preferences.searchType === 'trending') {
-        urls = await yomen.getTrendingVideos(); // You'll need to implement this method
-    } else {
-        Logger.info(`Searching for keyword: ${preferences.keyword}`);
-        urls = await yomen.searchKeyword(preferences.keyword, preferences.sortBy);
+    const yomen = new YOMEN(page);
+    const urls = await getVideoUrls(yomen, preferences);
+    
+    if (urls.length === 0) {
+        Logger.warn('No videos found. Exiting...');
+        return;
     }
-
-    for (const url of urls) {
-        Logger.info(`Navigating to video: ${url}`);
-        console.log(preferences)
-        if (preferences.commentType === 'ai') {
-            await yomen.goToVideo(url, 'ai');
-        
-        } else if (preferences.commentType === 'copy') {
-            await yomen.goToVideo(url, 'copy');
-        } 
-        else if (preferences.commentType === 'manual' && preferences.manualCommentType === 'csv') {
-            await yomen.goToVideo(url, 'csv');
-        
-        } else if(preferences.commentType === 'manual' && preferences.manualCommentType === 'direct') {
-            await yomen.goToVideo(url, 'direct', preferences.comment);
-        }
-        
-        await randomDelay(5000, 10000);
-    }
-
+    
+    await processVideos(yomen, urls, preferences);
     Logger.info('Process completed');
 }
  
-async function init() {
-    initialize();
-    const zipFilePath = './bin.zip';
-    const driverFolderPath = './driver';
-
-    // Check if the driver folder exists and is not empty
-    if (fs.existsSync(driverFolderPath) && fs.readdirSync(driverFolderPath).length > 0) {
-        Logger.info('Driver files already exist. Skipping download.');
-        await main();  // Proceed to the main process
-    } else {
-        // Check if the zip file exists
-        if (fs.existsSync(zipFilePath)) {
-            Logger.info('Zip file already exists. Skipping download.');
-            const downloader = new Downloader(zipFilePath);
-            await downloader.unzipFile();  // Only unzip if the zip exists
-        } else {
-            Logger.info('Downloading driver files...');
-            const downloader = new Downloader(zipFilePath);
-            await downloader.downloadFromUrl();  // Download and unzip
-        }
-        await main();  // Proceed to the main process after ensuring drivers are ready
+async function init(): Promise<void> {
+    try {
+        initialize();
+        await ensureDriverExists();
+        await main();
+    } catch (error) {
+        Logger.error(`Application error: ${error.message}`);
+        process.exit(1);
     }
 }
-init();
-function generateAIComment(url: string) {
-    throw new Error('Function not implemented.');
-}
 
+init();

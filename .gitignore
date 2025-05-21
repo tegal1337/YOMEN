@@ -9,10 +9,8 @@ package-lock.json
 bin
 tmp
 .env
-session
 database.sqlite
 bun.lockb
-driver
 /bun.lockb
 /package-lock.json
 /tmp
